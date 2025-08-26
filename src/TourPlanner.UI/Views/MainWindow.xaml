@@ -9,11 +9,49 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="{Binding Title}" FontSize="20" FontWeight="Bold" />
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>            
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
 
+
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="{Binding Title}" FontSize="20" FontWeight="Bold" />
+
+        <!-- 
         <ListBox Grid.Row="1" ItemsSource="{Binding Tours}" DisplayMemberPath="Name" />
+        -->
+    
+        <Frame Grid.Row="1" Grid.Column="0"
+               NavigationUIVisibility="Hidden"
+               Source="/Views/TourListView.xaml"
+                >
+        </Frame>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0">
+        <!-- <Frame Grid.Row="1" Source="/Views/TourListView.xaml" NavigationUIVisibility="Hidden" />-->
+        
+        <Grid Grid.Row="1" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+               Text="Tourdetails"
+               TextWrapping="Wrap"
+               Margin="12,8"/>
+
+            <TextBlock Grid.Row="1"
+               Text="TourMap"
+               TextWrapping="Wrap"
+               Margin="12,8"/>
+            
+            <!--
+            <ContentControl Grid.Row="0" Content="{Binding Tourdetails}"/>
+            <ContentControl Grid.Row="1" Content="{Binding TourMap}"/>
+                -->
+        </Grid>
+
+        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,12,0,0">
             <TextBox Width="250" Margin="0,0,8,0" Text="{Binding NewTourName, UpdateSourceTrigger=PropertyChanged}" />
             <Button Content="Add Tour" Command="{Binding AddTourCommand}" />
         </StackPanel>

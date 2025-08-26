@@ -1,3 +1,6 @@
 namespace TourPlanner.Domain.Entities;
 
-public record Tour(Guid Id, string Name, string? Description, double DistanceKm);
+
+public record Tour(Guid Id, string Name, string? Description, string? From, string To, string? TransportType, double? DistanceKm);
+           
+        

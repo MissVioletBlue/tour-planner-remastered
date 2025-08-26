@@ -16,9 +16,11 @@ public sealed class TourService : ITourService
     public Task<IReadOnlyList<Tour>> GetAllAsync(CancellationToken ct = default)
         => _repo.GetAllAsync(ct);
 
-    public Task<Tour> CreateAsync(string name, string? description, double distanceKm, CancellationToken ct = default)
+    public Task<Tour> CreateAsync(string name, string? description, string From, string To, string TransportType, double distanceKm, CancellationToken ct = default)
     {
-        var tour = new Tour(Guid.NewGuid(), name.Trim(), description?.Trim(), distanceKm);
+        
+
+        var tour = new Tour(Guid.NewGuid(), name.Trim(), description?.Trim(), From?.Trim(), To?.Trim(), TransportType?.Trim(), distanceKm);
         return _repo.CreateAsync(tour, ct);
     }
 }
