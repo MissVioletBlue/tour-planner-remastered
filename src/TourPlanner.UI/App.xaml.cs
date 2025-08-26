@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Application.Services;
-using TourPlanner.Infrastructure.Interfaces;
 using TourPlanner.Infrastructure.Repositories;
 using TourPlanner.UI.ViewModels;
 
