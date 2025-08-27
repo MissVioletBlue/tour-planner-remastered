@@ -42,10 +42,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private async Task AddTourAsync()
     {
         if (string.IsNullOrWhiteSpace(NewTourName)) return;
-        var created = await _tourService.CreateAsync(NewTourName, null, null, null, null, 0);
+        var created = await _tourService.CreateAsync(NewTourName, null, 0);
         Tours.Add(created);
         NewTourName = string.Empty;
-       
+
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

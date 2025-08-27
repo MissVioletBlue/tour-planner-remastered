@@ -35,6 +35,23 @@ Passe in `src/TourPlanner.UI/appsettings.json` an:
 ```
 
 ## Nächste Schritte (Tag 2 Vorschau)
-- EF Core/Dapper installieren
-- `TourPlanner.Infrastructure` an Postgres anbinden (Migrations/Repos)
-- `TourPlanner.Application`-Services mit echten Repos verdrahten
+  - EF Core/Dapper installieren
+  - `TourPlanner.Infrastructure` an Postgres anbinden (Migrations/Repos)
+  - `TourPlanner.Application`-Services mit echten Repos verdrahten
+
+## Späterer DI-Switch
+
+Nach dem Merge mit WPF-UI kann in `App.xaml.cs` vom derzeitigen `InMemoryTourRepository` auf `EfTourRepository` umgestellt werden:
+
+```csharp
+// services.AddSingleton<ITourRepository, InMemoryTourRepository>();
+
+// services.AddDbContext<AppDbContext>(o =>
+// {
+//     var conn = context.Configuration.GetConnectionString("Postgres");
+//     o.UseNpgsql(conn);
+// });
+// services.AddScoped<ITourRepository, EfTourRepository>();
+```
+
+Diese Anleitung bleibt kommentiert, damit Waldo weiterhin das InMemory-Repo nutzt.
