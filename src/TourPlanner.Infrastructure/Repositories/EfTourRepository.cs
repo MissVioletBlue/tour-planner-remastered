@@ -1,9 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TourPlanner.Application.Contracts;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Domain.Entities;
 using TourPlanner.Infrastructure.Persistence;
-
 
 namespace TourPlanner.Infrastructure.Repositories;
 
@@ -17,18 +16,27 @@ public sealed class EfTourRepository : ITourRepository
 
     public async Task<PagedResult<Tour>> SearchAsync(SearchRequest r, CancellationToken ct = default)
     {
+        var page = Math.Max(1, r.Page);
+        var size = Math.Clamp(r.PageSize, 1, 200);
+        var pattern = r.Text?.Trim();
+
         IQueryable<Tour> q = _db.Tours.AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(r.Text))
-            q = q.Where(x => EF.Functions.ILike(x.Name, $"%{r.Text}%"));
+        if (!string.IsNullOrWhiteSpace(pattern))
+        {
+            var p = pattern.ToLower();
+            q = q.Where(x => x.Name.ToLower().Contains(p));
+        }
 
-        if (r.SortBy is "Date" or "Rating") { /* optional für aggregierte Sortierung */ }
-        else if (r.SortBy == "DistanceKm") q = r.Desc ? q.OrderByDescending(x => x.DistanceKm) : q.OrderBy(x => x.DistanceKm);
-        else q = r.Desc ? q.OrderByDescending(x => x.Name) : q.OrderBy(x => x.Name);
+        q = r.SortBy switch
+        {
+            "DistanceKm" => r.Desc ? q.OrderByDescending(x => x.DistanceKm) : q.OrderBy(x => x.DistanceKm),
+            _            => r.Desc ? q.OrderByDescending(x => x.Name)       : q.OrderBy(x => x.Name)
+        };
 
         var total = await q.CountAsync(ct);
-        var items = await q.Skip((r.Page - 1) * r.PageSize).Take(r.PageSize).ToListAsync(ct);
-        return new(items, r.Page, r.PageSize, total);
+        var items = await q.Skip((page - 1) * size).Take(size).ToListAsync(ct);
+        return new(items, page, size, total);
     }
 
     public async Task<Tour> CreateAsync(Tour tour, CancellationToken ct = default)
