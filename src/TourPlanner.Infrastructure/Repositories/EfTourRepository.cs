@@ -43,11 +43,18 @@ public sealed class EfTourRepository : ITourRepository
     {
         _db.Tours.Add(tour);
         await _db.SaveChangesAsync(ct);
+        _db.Entry(tour).State = EntityState.Detached;
         return tour;
     }
 
     public async Task UpdateAsync(Tour tour, CancellationToken ct = default)
     {
+        var tracked = _db.Tours.Local.FirstOrDefault(e => e.Id == tour.Id);
+        if (tracked is not null)
+        {
+            _db.Entry(tracked).State = EntityState.Detached;
+        }
+
         _db.Tours.Update(tour);
         await _db.SaveChangesAsync(ct);
     }
