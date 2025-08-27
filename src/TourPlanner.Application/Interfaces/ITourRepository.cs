@@ -3,11 +3,11 @@ using TourPlanner.Domain.Entities;
 
 namespace TourPlanner.Application.Interfaces;
 
-public interface ITourService
+public interface ITourRepository
 {
     Task<IReadOnlyList<Tour>> GetAllAsync(CancellationToken ct = default);
     Task<PagedResult<Tour>> SearchAsync(SearchRequest req, CancellationToken ct = default);
-    Task<Tour> CreateAsync(string name, string? description, double distanceKm, CancellationToken ct = default);
+    Task<Tour> CreateAsync(Tour tour, CancellationToken ct = default);
     Task UpdateAsync(Tour tour, CancellationToken ct = default);
     Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

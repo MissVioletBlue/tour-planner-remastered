@@ -1,6 +1,5 @@
-using TourPlanner.Application.Services;
+using TourPlanner.Application.Interfaces;
 using TourPlanner.Infrastructure.Repositories;
-using TourPlanner.Infrastructure.Interfaces;
 using Xunit;
 
 namespace TourPlanner.Tests.Services;

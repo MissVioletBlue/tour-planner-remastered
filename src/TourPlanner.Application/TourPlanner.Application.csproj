@@ -6,6 +6,5 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\TourPlanner.Domain\TourPlanner.Domain.csproj" />
-    <ProjectReference Include="..\TourPlanner.Infrastructure\TourPlanner.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
