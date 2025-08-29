@@ -21,6 +21,7 @@ public sealed class EfTourLogRepository : ITourLogRepository
     {
         _db.TourLogs.Add(log);
         await _db.SaveChangesAsync(ct);
+        _db.Entry(log).State = EntityState.Detached;
         return log;
     }
 
