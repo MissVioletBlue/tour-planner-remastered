@@ -21,7 +21,7 @@ Dieser Tag‑1‑Stand liefert dir:
 - `TourPlanner.UI` – WPF UI (MVVM, DI, Konfiguration)
 - `TourPlanner.Tests` – xUnit (Beispieltest)
 
-## Konfiguration
+## Konfiguration / Dev
 Passe in `src/TourPlanner.UI/appsettings.json` an:
 ```json
 {
@@ -34,24 +34,41 @@ Passe in `src/TourPlanner.UI/appsettings.json` an:
 }
 ```
 
+### Postgres & EF Core
+1. Postgres starten (z.B. via Docker):
+   ```bash
+   docker run --name tourplanner-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
+   ```
+2. EF-Migrationen anwenden:
+   ```bash
+   dotnet ef database update --project src/TourPlanner.Infrastructure --startup-project src/TourPlanner.UI
+   ```
+
+## Tests
+```bash
+dotnet test
+```
+
 ## Nächste Schritte (Tag 2 Vorschau)
   - EF Core/Dapper installieren
   - `TourPlanner.Infrastructure` an Postgres anbinden (Migrations/Repos)
   - `TourPlanner.Application`-Services mit echten Repos verdrahten
 
-## Späterer DI-Switch
+## DI-Switch (InMemory ↔ Ef)
 
-Nach dem Merge mit WPF-UI kann in `App.xaml.cs` vom derzeitigen `InMemoryTourRepository` auf `EfTourRepository` umgestellt werden:
+Standardmäßig nutzt die UI ein InMemory-Repository. Für die Umstellung auf EF-Core müssen `AppDbContext` und das EF-Repository registriert werden:
 
 ```csharp
-// services.AddSingleton<ITourRepository, InMemoryTourRepository>();
+// InMemory (default)
+services.AddSingleton<ITourRepository, InMemoryTourRepository>();
 
-// services.AddDbContext<AppDbContext>(o =>
-// {
-//     var conn = context.Configuration.GetConnectionString("Postgres");
-//     o.UseNpgsql(conn);
-// });
-// services.AddScoped<ITourRepository, EfTourRepository>();
+// EF-Core
+services.AddDbContext<AppDbContext>(o =>
+{
+    var conn = context.Configuration.GetConnectionString("Postgres");
+    o.UseNpgsql(conn);
+});
+services.AddScoped<ITourRepository, EfTourRepository>();
 ```
 
-Diese Anleitung bleibt kommentiert, damit Waldo weiterhin das InMemory-Repo nutzt.
+Je nach Bedarf den gewünschten Block aktivieren und den anderen entfernen oder auskommentieren.
