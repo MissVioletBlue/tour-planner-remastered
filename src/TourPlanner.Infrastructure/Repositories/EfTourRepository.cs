@@ -18,15 +18,24 @@ public sealed class EfTourRepository : ITourRepository
     {
         var page = Math.Max(1, r.Page);
         var size = Math.Clamp(r.PageSize, 1, 200);
-        var pattern = r.Text?.Trim();
+        var text = r.Text?.Trim();
 
         IQueryable<Tour> q = _db.Tours.AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(pattern))
+        if (!string.IsNullOrWhiteSpace(text))
         {
-            var p = pattern.ToLower();
-            q = q.Where(x => x.Name.ToLower().Contains(p));
+            var lower = text.ToLower();
+            q = q.Where(t => t.Name.ToLower().Contains(lower));
         }
+
+        if (r.MinRating is int minR)
+            q = q.Where(t => _db.TourLogs.Any(l => l.TourId == t.Id && l.Rating >= minR));
+
+        if (r.DateFrom is DateTime df)
+            q = q.Where(t => _db.TourLogs.Any(l => l.TourId == t.Id && l.Date >= df));
+
+        if (r.DateTo is DateTime dt)
+            q = q.Where(t => _db.TourLogs.Any(l => l.TourId == t.Id && l.Date <= dt));
 
         q = r.SortBy switch
         {
