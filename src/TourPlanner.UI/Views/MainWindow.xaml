@@ -1,6 +1,7 @@
 <Window x:Class="TourPlanner.UI.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:TourPlanner.UI.Views"
         Title="TourPlanner" Height="450" Width="800">
     <Grid Margin="16">
         <Grid.RowDefinitions>
@@ -20,12 +21,15 @@
         <!-- 
         <ListBox Grid.Row="1" ItemsSource="{Binding Tours}" DisplayMemberPath="Name" />
         -->
-    
+
+        <views:TourListView Grid.Row="1" Grid.Column="0" />
+        <!--
         <Frame Grid.Row="1" Grid.Column="0"
                NavigationUIVisibility="Hidden"
                Source="/Views/TourListView.xaml"
                 >
         </Frame>
+        -->
 
         <!-- <Frame Grid.Row="1" Source="/Views/TourListView.xaml" NavigationUIVisibility="Hidden" />-->
         

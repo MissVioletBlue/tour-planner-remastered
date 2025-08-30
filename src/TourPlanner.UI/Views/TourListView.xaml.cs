@@ -18,7 +18,7 @@ namespace TourPlanner.UI.Views
     /// <summary>
     /// Interaktionslogik für TourListView.xaml
     /// </summary>
-    public partial class TourListView : Page
+    public partial class TourListView : UserControl
     {
         public TourListView()
         {
