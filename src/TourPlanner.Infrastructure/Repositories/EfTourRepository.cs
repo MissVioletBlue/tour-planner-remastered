@@ -84,14 +84,16 @@ public sealed class EfTourRepository : ITourRepository
     {
         ct.ThrowIfCancellationRequested();
         return await _db.Tours
+            .AsNoTracking()
+            .OrderBy(t => t.Name)
             .Select(t => new TourSummaryDto(
                 t.Id,
                 t.Name,
                 t.DistanceKm,
                 _db.TourLogs.Count(l => l.TourId == t.Id),
-                _db.TourLogs.Where(l => l.TourId == t.Id).Select(l => (double?)l.Rating).Average()))
-            .AsNoTracking()
-            .OrderBy(x => x.Name)
+                _db.TourLogs.Where(l => l.TourId == t.Id)
+                    .Select(l => (double?)l.Rating)
+                    .Average()))
             .ToListAsync(ct);
     }
 }

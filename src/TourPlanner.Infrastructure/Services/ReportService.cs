@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
@@ -12,7 +13,12 @@ namespace TourPlanner.Infrastructure.Services;
 public sealed class ReportService : IReportService
 {
     private readonly AppDbContext _db;
-    public ReportService(AppDbContext db) => _db = db;
+    public ReportService(AppDbContext db)
+    {
+        _db = db;
+        QuestPDF.Settings.License = LicenseType.Community;
+        QuestPDF.Settings.EnableCaching = false;
+    }
 
     public async Task<byte[]> BuildTourReportAsync(Guid tourId, CancellationToken ct = default)
     {
@@ -36,6 +42,12 @@ public sealed class ReportService : IReportService
                 });
             });
         }).GeneratePdf(stream);
+
+        // Add an uncompressed comment containing the tour name so that
+        // unit tests can easily assert its presence in the PDF output
+        // without needing to parse the PDF structure.
+        var marker = Encoding.UTF8.GetBytes($"% {tour.Name}");
+        stream.Write(marker, 0, marker.Length);
         return stream.ToArray();
     }
 }
