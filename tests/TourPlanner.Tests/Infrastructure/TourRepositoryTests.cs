@@ -65,7 +65,8 @@ public class TourRepositoryTests
         Assert.Single(all);
         Assert.Equal("New", all[0].Name);
 
-        await repo.DeleteAsync(t.Id);
+        var affected = await repo.DeleteAsync(t.Id);
+        Assert.Equal(1, affected);
         var empty = await repo.GetAllAsync();
         Assert.Empty(empty);
     }

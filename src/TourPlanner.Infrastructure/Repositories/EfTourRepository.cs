@@ -12,10 +12,14 @@ public sealed class EfTourRepository : ITourRepository
     public EfTourRepository(AppDbContext db) => _db = db;
 
     public async Task<IReadOnlyList<Tour>> GetAllAsync(CancellationToken ct = default)
-        => await _db.Tours.AsNoTracking().OrderBy(x => x.Name).ToListAsync(ct);
+    {
+        ct.ThrowIfCancellationRequested();
+        return await _db.Tours.AsNoTracking().OrderBy(x => x.Name).ToListAsync(ct);
+    }
 
     public async Task<PagedResult<Tour>> SearchAsync(SearchRequest r, CancellationToken ct = default)
     {
+        ct.ThrowIfCancellationRequested();
         var page = Math.Max(1, r.Page);
         var size = Math.Clamp(r.PageSize, 1, 200);
         var text = r.Text?.Trim();
@@ -50,6 +54,7 @@ public sealed class EfTourRepository : ITourRepository
 
     public async Task<Tour> CreateAsync(Tour tour, CancellationToken ct = default)
     {
+        ct.ThrowIfCancellationRequested();
         _db.Tours.Add(tour);
         await _db.SaveChangesAsync(ct);
         _db.Entry(tour).State = EntityState.Detached;
@@ -58,6 +63,7 @@ public sealed class EfTourRepository : ITourRepository
 
     public async Task UpdateAsync(Tour tour, CancellationToken ct = default)
     {
+        ct.ThrowIfCancellationRequested();
         var tracked = _db.Tours.Local.FirstOrDefault(e => e.Id == tour.Id);
         if (tracked is not null)
         {
@@ -68,8 +74,24 @@ public sealed class EfTourRepository : ITourRepository
         await _db.SaveChangesAsync(ct);
     }
 
-    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    public async Task<int> DeleteAsync(Guid id, CancellationToken ct = default)
     {
-        await _db.Tours.Where(x => x.Id == id).ExecuteDeleteAsync(ct);
+        ct.ThrowIfCancellationRequested();
+        return await _db.Tours.Where(x => x.Id == id).ExecuteDeleteAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<TourSummaryDto>> GetSummariesAsync(CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        return await _db.Tours
+            .Select(t => new TourSummaryDto(
+                t.Id,
+                t.Name,
+                t.DistanceKm,
+                _db.TourLogs.Count(l => l.TourId == t.Id),
+                _db.TourLogs.Where(l => l.TourId == t.Id).Select(l => (double?)l.Rating).Average()))
+            .AsNoTracking()
+            .OrderBy(x => x.Name)
+            .ToListAsync(ct);
     }
 }

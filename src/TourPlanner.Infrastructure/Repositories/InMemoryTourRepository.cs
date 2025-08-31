@@ -9,10 +9,14 @@ public sealed class InMemoryTourRepository : ITourRepository
     private readonly List<Tour> _tours = new();
 
     public Task<IReadOnlyList<Tour>> GetAllAsync(CancellationToken ct = default)
-        => Task.FromResult((IReadOnlyList<Tour>)_tours.OrderBy(t => t.Name).ToList());
+    {
+        ct.ThrowIfCancellationRequested();
+        return Task.FromResult((IReadOnlyList<Tour>)_tours.OrderBy(t => t.Name).ToList());
+    }
 
     public Task<PagedResult<Tour>> SearchAsync(SearchRequest r, CancellationToken ct = default)
     {
+        ct.ThrowIfCancellationRequested();
         IEnumerable<Tour> q = _tours;
 
         if (!string.IsNullOrWhiteSpace(r.Text))
@@ -35,20 +39,33 @@ public sealed class InMemoryTourRepository : ITourRepository
 
     public Task<Tour> CreateAsync(Tour tour, CancellationToken ct = default)
     {
+        ct.ThrowIfCancellationRequested();
         _tours.Add(tour);
         return Task.FromResult(tour);
     }
 
     public Task UpdateAsync(Tour tour, CancellationToken ct = default)
     {
+        ct.ThrowIfCancellationRequested();
         var idx = _tours.FindIndex(t => t.Id == tour.Id);
         if (idx >= 0) _tours[idx] = tour;
         return Task.CompletedTask;
     }
 
-    public Task DeleteAsync(Guid id, CancellationToken ct = default)
+    public Task<int> DeleteAsync(Guid id, CancellationToken ct = default)
     {
-        _tours.RemoveAll(t => t.Id == id);
-        return Task.CompletedTask;
+        ct.ThrowIfCancellationRequested();
+        var removed = _tours.RemoveAll(t => t.Id == id);
+        return Task.FromResult(removed);
+    }
+
+    public Task<IReadOnlyList<TourSummaryDto>> GetSummariesAsync(CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        var list = _tours
+            .OrderBy(t => t.Name)
+            .Select(t => new TourSummaryDto(t.Id, t.Name, t.DistanceKm, 0, null))
+            .ToList();
+        return Task.FromResult((IReadOnlyList<TourSummaryDto>)list);
     }
 }

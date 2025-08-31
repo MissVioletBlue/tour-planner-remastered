@@ -10,4 +10,5 @@ public interface ITourService
     Task<Tour> CreateAsync(string name, string? description, double distanceKm, CancellationToken ct = default);
     Task UpdateAsync(Tour tour, CancellationToken ct = default);
     Task DeleteAsync(Guid id, CancellationToken ct = default);
+    Task<IReadOnlyList<TourSummaryDto>> GetSummariesAsync(CancellationToken ct = default);
 }

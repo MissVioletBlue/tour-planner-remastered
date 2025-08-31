@@ -37,7 +37,8 @@ public class TourLogRepositoryTests
         var upd = await logs.GetByTourAsync(t.Id);
         Assert.Equal(5, upd[0].Rating);
 
-        await logs.DeleteAsync(l.Id);
+        var affected = await logs.DeleteAsync(l.Id);
+        Assert.Equal(1, affected);
         var empty = await logs.GetByTourAsync(t.Id);
         Assert.Empty(empty);
     }
