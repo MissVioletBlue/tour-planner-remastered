@@ -16,6 +16,8 @@ public sealed class ReportService : IReportService
     {
         _db = db;
         QuestPDF.Settings.License = LicenseType.Community;
+        QuestPDF.Settings.EnableCaching = false;
+        QuestPDF.Settings.EnableCompression = false;
     }
 
     public async Task<byte[]> BuildTourReportAsync(Guid tourId, CancellationToken ct = default)
