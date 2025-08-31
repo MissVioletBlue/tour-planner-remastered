@@ -1,13 +1,11 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using TourPlanner.Domain.Entities;
 using TourPlanner.UI.Commands;
 
 namespace TourPlanner.UI.ViewModels;
 
-public sealed class TourLogsViewModel : INotifyPropertyChanged
+public sealed class TourLogsViewModel : ViewModelBase
 {
     public ObservableCollection<TourLog> Logs { get; } = new();
 
@@ -17,19 +15,39 @@ public sealed class TourLogsViewModel : INotifyPropertyChanged
         get => _selectedTour;
         set
         {
-            if (_selectedTour != value)
+            if (SetProperty(ref _selectedTour, value))
             {
-                _selectedTour = value;
                 Load();
-                OnPropertyChanged();
                 OnPropertyChanged(nameof(Header));
+                CommandManager.InvalidateRequerySuggested();
             }
         }
     }
 
-    public DateTime NewDate { get; set; } = DateTime.Today;
-    public string? NewNotes { get; set; }
-    public int NewRating { get; set; } = 3;
+    private DateTime _newDate = DateTime.Today;
+    public DateTime NewDate
+    {
+        get => _newDate;
+        set => SetProperty(ref _newDate, value);
+    }
+
+    private string? _newNotes;
+    public string? NewNotes
+    {
+        get => _newNotes;
+        set
+        {
+            if (SetProperty(ref _newNotes, value))
+                CommandManager.InvalidateRequerySuggested();
+        }
+    }
+
+    private int _newRating = 3;
+    public int NewRating
+    {
+        get => _newRating;
+        set => SetProperty(ref _newRating, value);
+    }
 
     public ICommand AddLogCommand { get; }
     public string Header => SelectedTour is null ? "Logs" : $"Logs for {SelectedTour.Name}";
@@ -50,10 +68,5 @@ public sealed class TourLogsViewModel : INotifyPropertyChanged
         if (SelectedTour is null) return;
         Logs.Add(new TourLog(Guid.NewGuid(), SelectedTour.Id, NewDate, NewNotes, NewRating));
         NewNotes = string.Empty;
-        OnPropertyChanged(nameof(NewNotes));
     }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-    private void OnPropertyChanged([CallerMemberName] string? name = null)
-        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
