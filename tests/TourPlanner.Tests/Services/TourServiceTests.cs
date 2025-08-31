@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Infrastructure.Repositories;
 using Xunit;
@@ -10,7 +11,7 @@ public class TourServiceTests
     public async Task Create_Adds_Tour()
     {
         ITourRepository repo = new InMemoryTourRepository();
-        var svc = new TourPlanner.Application.Services.TourService(repo);
+        var svc = new TourPlanner.Application.Services.TourService(repo, NullLogger<TourPlanner.Application.Services.TourService>.Instance);
 
         var created = await svc.CreateAsync("Test Tour", null, 0);
         var all = await svc.GetAllAsync();

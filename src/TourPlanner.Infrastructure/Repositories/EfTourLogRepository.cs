@@ -11,14 +11,18 @@ public sealed class EfTourLogRepository : ITourLogRepository
     public EfTourLogRepository(AppDbContext db) => _db = db;
 
     public async Task<IReadOnlyList<TourLog>> GetByTourAsync(Guid tourId, CancellationToken ct = default)
-        => await _db.TourLogs.AsNoTracking()
+    {
+        ct.ThrowIfCancellationRequested();
+        return await _db.TourLogs.AsNoTracking()
             .Where(x => x.TourId == tourId)
             .OrderByDescending(x => x.Date)
             .ThenByDescending(x => x.Rating)
             .ToListAsync(ct);
+    }
 
     public async Task<TourLog> CreateAsync(TourLog log, CancellationToken ct = default)
     {
+        ct.ThrowIfCancellationRequested();
         _db.TourLogs.Add(log);
         await _db.SaveChangesAsync(ct);
         _db.Entry(log).State = EntityState.Detached;
@@ -27,10 +31,14 @@ public sealed class EfTourLogRepository : ITourLogRepository
 
     public async Task UpdateAsync(TourLog log, CancellationToken ct = default)
     {
+        ct.ThrowIfCancellationRequested();
         _db.TourLogs.Update(log);
         await _db.SaveChangesAsync(ct);
     }
 
-    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
-        => await _db.TourLogs.Where(x => x.Id == id).ExecuteDeleteAsync(ct);
+    public async Task<int> DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        return await _db.TourLogs.Where(x => x.Id == id).ExecuteDeleteAsync(ct);
+    }
 }
