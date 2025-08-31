@@ -1,53 +1,44 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TourPlanner.Application.Interfaces;
-using TourPlanner.Domain.Entities;
-using TourPlanner.Application.Services;
 using System.Collections.ObjectModel;
-using TourPlanner.UI.Views;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.Windows.Data;
+using TourPlanner.Domain.Entities;
 
+namespace TourPlanner.UI.ViewModels;
 
-namespace TourPlanner.UI.ViewModels
+public class TourListViewModel : ViewModelBase
 {
-     public class TourListViewModel : ViewModelBase
+    public TourListViewModel(ObservableCollection<Tour> tours)
     {
-        public TourListViewModel(ObservableCollection<Tour> tours)
-        {
-            Tours = tours;
-        }
-        public ObservableCollection<Tour> Tours { get; }
-
-
+        Tours = tours;
+        ToursView = CollectionViewSource.GetDefaultView(Tours);
+        ToursView.Filter = Filter;
     }
 
+    public ObservableCollection<Tour> Tours { get; }
+    public ICollectionView ToursView { get; }
 
-        public abstract class ViewModelBase : INotifyPropertyChanged
+    private Tour? _selectedTour;
+    public Tour? SelectedTour
     {
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = "")
-        {
-            if (Equals(storage, value))
-                return false;
-
-            storage = value;
-            OnPropertyChanged(propertyName);
-            return true;
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
+        get => _selectedTour;
+        set => SetProperty(ref _selectedTour, value);
     }
 
+    private string? _searchText;
+    public string? SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (SetProperty(ref _searchText, value))
+                ToursView.Refresh();
+        }
+    }
 
-
-
-
+    private bool Filter(object obj)
+    {
+        if (obj is not Tour t) return false;
+        if (string.IsNullOrWhiteSpace(SearchText)) return true;
+        return t.Name?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false;
+    }
 }

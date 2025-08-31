@@ -1,0 +1,20 @@
+<UserControl x:Class="TourPlanner.UI.Views.TourLogsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Grid Margin="8">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <TextBlock Text="{Binding Header}" FontWeight="Bold"/>
+    <ListBox Grid.Row="1" ItemsSource="{Binding Logs}" DisplayMemberPath="Notes"/>
+    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
+      <DatePicker SelectedDate="{Binding NewDate}"/>
+      <TextBox Width="220" Margin="8,0,0,0" Text="{Binding NewNotes}"/>
+      <Slider Width="120" Margin="8,0,0,0" Minimum="1" Maximum="5" IsSnapToTickEnabled="True" Value="{Binding NewRating}"/>
+      <Button Margin="8,0,0,0" Content="Add" Command="{Binding AddLogCommand}"/>
+    </StackPanel>
+  </Grid>
+</UserControl>
