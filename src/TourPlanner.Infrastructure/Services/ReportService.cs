@@ -12,7 +12,11 @@ namespace TourPlanner.Infrastructure.Services;
 public sealed class ReportService : IReportService
 {
     private readonly AppDbContext _db;
-    public ReportService(AppDbContext db) => _db = db;
+    public ReportService(AppDbContext db)
+    {
+        _db = db;
+        QuestPDF.Settings.License = LicenseType.Community;
+    }
 
     public async Task<byte[]> BuildTourReportAsync(Guid tourId, CancellationToken ct = default)
     {
