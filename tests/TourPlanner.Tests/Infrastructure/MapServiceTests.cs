@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Linq;
+using System.IO;
 using Microsoft.Extensions.Configuration;
 using TourPlanner.Infrastructure.Services;
 using Xunit;
@@ -30,6 +31,7 @@ public class MapServiceTests
         Assert.Equal(2, result.Path.Count);
         Assert.Equal((0.0, 0.0), result.Path[0]);
         Assert.Equal((1.0, 1.0), result.Path[1]);
+        Assert.True(File.Exists(result.ImagePath));
     }
 
     private sealed class FakeHandler : HttpMessageHandler
@@ -40,7 +42,14 @@ public class MapServiceTests
             Assert.Equal("test", auth.Single());
 
             string json;
-            if (request.RequestUri!.AbsolutePath.Contains("geocode"))
+            if (request.RequestUri!.Host.Contains("staticmap"))
+            {
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new ByteArrayContent(new byte[] {1,2,3})
+                });
+            }
+            else if (request.RequestUri!.AbsolutePath.Contains("geocode"))
             {
                 var textParam = request.RequestUri.Query.Split('&').First(p => p.Contains("text=")).Split('=')[1];
                 var text = Uri.UnescapeDataString(textParam);

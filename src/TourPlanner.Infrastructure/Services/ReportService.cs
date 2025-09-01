@@ -50,4 +50,58 @@ public sealed class ReportService : IReportService
         stream.Write(marker, 0, marker.Length);
         return stream.ToArray();
     }
+
+    public async Task<byte[]> BuildSummaryReportAsync(CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+
+        var data = await _db.Tours
+            .AsNoTracking()
+            .Select(t => new
+            {
+                t.Name,
+                AvgDist = _db.TourLogs.Where(l => l.TourId == t.Id).Select(l => (double?)l.TotalDistance).Average(),
+                AvgTimeTicks = _db.TourLogs.Where(l => l.TourId == t.Id).Select(l => (double?)l.TotalTime.Ticks).Average(),
+                AvgRating = _db.TourLogs.Where(l => l.TourId == t.Id).Select(l => (double?)l.Rating).Average()
+            }).ToListAsync(ct);
+
+        using var stream = new MemoryStream();
+        Document.Create(d =>
+        {
+            d.Page(p =>
+            {
+                p.Content().Table(table =>
+                {
+                    table.ColumnsDefinition(c =>
+                    {
+                        c.RelativeColumn(3);
+                        c.RelativeColumn();
+                        c.RelativeColumn();
+                        c.RelativeColumn();
+                    });
+
+                    table.Header(h =>
+                    {
+                        h.Cell().Text("Tour").Bold();
+                        h.Cell().Text("Avg Dist").Bold();
+                        h.Cell().Text("Avg Time").Bold();
+                        h.Cell().Text("Avg Rating").Bold();
+                    });
+
+                    foreach (var item in data)
+                    {
+                        table.Cell().Text(item.Name);
+                        table.Cell().Text(item.AvgDist?.ToString("F1") ?? "-");
+                        table.Cell().Text(item.AvgTimeTicks.HasValue ? TimeSpan.FromTicks((long)item.AvgTimeTicks).ToString() : "-");
+                        table.Cell().Text(item.AvgRating?.ToString("F1") ?? "-");
+                    }
+                });
+            });
+        }).GeneratePdf(stream);
+
+        // marker for tests
+        var marker = Encoding.UTF8.GetBytes("% SummaryReport");
+        stream.Write(marker, 0, marker.Length);
+        return stream.ToArray();
+    }
 }

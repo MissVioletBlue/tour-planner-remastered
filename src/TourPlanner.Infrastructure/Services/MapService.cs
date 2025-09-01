@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.IO;
+using System.Linq;
 using Microsoft.Extensions.Configuration;
 using TourPlanner.Application.Contracts;
 using TourPlanner.Application.Interfaces;
@@ -15,6 +17,7 @@ public sealed class MapService : IMapService
 {
     private readonly HttpClient _http;
     private readonly string _apiKey;
+    private readonly string _imageDir;
     private static readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web);
 
     public MapService(HttpClient http, IConfiguration configuration)
@@ -22,6 +25,8 @@ public sealed class MapService : IMapService
         _http = http;
         _apiKey = configuration["OpenRouteService:ApiKey"]?.Trim()
                   ?? throw new InvalidOperationException("OpenRouteService API key is not configured.");
+        _imageDir = configuration["Images:BaseDir"] ?? Path.Combine(AppContext.BaseDirectory, "images");
+        Directory.CreateDirectory(_imageDir);
     }
 
     public async Task<RouteResult> GetRouteAsync(string from, string to, CancellationToken ct = default)
@@ -79,7 +84,8 @@ public sealed class MapService : IMapService
             path.Add((lat, lon));
         }
 
-        return new RouteResult(distanceKm, duration, path);
+        var img = await DownloadStaticMapAsync(path, ct);
+        return new RouteResult(distanceKm, duration, path, img);
     }
 
     private async Task<(double Lat, double Lng)> GeocodeAsync(string text, CancellationToken ct)
@@ -120,5 +126,18 @@ public sealed class MapService : IMapService
             throw new InvalidOperationException($"{op} failed: unauthorized – check your ORS API key. {detail}");
 
         throw new InvalidOperationException($"{op} failed: HTTP {(int)resp.StatusCode} {resp.ReasonPhrase}. {detail}");
+    }
+
+    private async Task<string> DownloadStaticMapAsync(IEnumerable<(double Lat, double Lng)> path, CancellationToken ct)
+    {
+        // Build simple static map request using openstreetmap static service
+        var coords = path.Take(30).Select(p => $"{p.Lat},{p.Lng}");
+        var url = "https://staticmap.openstreetmap.de/staticmap.php?size=600x400&path=" + string.Join("|", coords);
+        using var resp = await _http.GetAsync(url, ct);
+        await EnsureSuccessAsync(resp, "Map image");
+        var file = Path.Combine(_imageDir, $"{Guid.NewGuid():N}.png");
+        await using var fs = File.Create(file);
+        await resp.Content.CopyToAsync(fs, ct);
+        return file;
     }
 }

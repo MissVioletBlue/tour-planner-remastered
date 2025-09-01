@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TourPlanner.Application.Contracts;
 using TourPlanner.Application.Interfaces;
@@ -30,11 +31,25 @@ public sealed class ExportService : IExportService
             t.DistanceKm,
             t.EstimatedTime,
             t.Route,
+            t.RouteImagePath,
             logs.Where(l => l.TourId == t.Id).ToList()
         )).ToList();
 
         if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
             return JsonSerializer.SerializeToUtf8Bytes(items, new JsonSerializerOptions { WriteIndented = true });
+
+        if (string.Equals(format, "gpx", StringComparison.OrdinalIgnoreCase))
+        {
+            var t = tours.Single();
+            var sbGpx = new StringBuilder();
+            sbGpx.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+            sbGpx.AppendLine("<gpx version=\"1.1\" creator=\"TourPlanner\">");
+            sbGpx.AppendLine($"  <trk><name>{Escape(t.Name)}</name><trkseg>");
+            foreach (var p in t.Route)
+                sbGpx.AppendLine($"    <trkpt lat=\"{p.Lat}\" lon=\"{p.Lng}\" />");
+            sbGpx.AppendLine("  </trkseg></trk></gpx>");
+            return Encoding.UTF8.GetBytes(sbGpx.ToString());
+        }
 
         var sb = new StringBuilder().AppendLine("Id,Name,Description,DistanceKm");
         foreach (var t in tours)
@@ -60,7 +75,8 @@ public sealed class ExportService : IExportService
                     dto.TransportType,
                     dto.DistanceKm,
                     dto.EstimatedTime,
-                    dto.Route ?? new List<(double,double)>()
+                    dto.Route ?? new List<(double,double)>(),
+                    dto.RouteImagePath ?? string.Empty
                 ));
                 foreach (var l in dto.Logs)
                     if (!await _db.TourLogs.AnyAsync(x => x.Id == l.Id, ct))

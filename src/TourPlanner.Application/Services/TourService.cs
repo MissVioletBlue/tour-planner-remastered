@@ -36,7 +36,7 @@ public sealed class TourService : ITourService
             var logs = await _logRepo.GetByTourAsync(t.Id, ct);
             var popularity = logs.Count;
             var child = ComputeChildFriendliness(logs);
-            if (string.IsNullOrWhiteSpace(req.Text) || Contains(t, popularity, child, req.Text))
+            if (string.IsNullOrWhiteSpace(req.Text) || Contains(t, logs, popularity, child, req.Text))
                 list.Add(t);
         }
 
@@ -62,7 +62,7 @@ public sealed class TourService : ITourService
         if (string.IsNullOrWhiteSpace(to)) throw new ValidationFailedException("To required");
         if (string.IsNullOrWhiteSpace(transportType)) throw new ValidationFailedException("Transport type required");
         var route = await _mapService.GetRouteAsync(from, to, ct);
-        var tour = new Tour(Guid.NewGuid(), name.Trim(), description?.Trim(), from.Trim(), to.Trim(), transportType.Trim(), route.DistanceKm, route.EstimatedTime, route.Path);
+        var tour = new Tour(Guid.NewGuid(), name.Trim(), description?.Trim(), from.Trim(), to.Trim(), transportType.Trim(), route.DistanceKm, route.EstimatedTime, route.Path, route.ImagePath);
         _log.LogInformation("Creating tour {Name}", tour.Name);
         return await _repo.CreateAsync(tour, ct);
     }
@@ -82,7 +82,8 @@ public sealed class TourService : ITourService
             TransportType = tour.TransportType.Trim(),
             DistanceKm = route.DistanceKm,
             EstimatedTime = route.EstimatedTime,
-            Route = route.Path
+            Route = route.Path,
+            RouteImagePath = route.ImagePath
         };
         _log.LogInformation("Updating tour {Id}", tour.Id);
         await _repo.UpdateAsync(updated, ct);
@@ -112,7 +113,7 @@ public sealed class TourService : ITourService
         return list;
     }
 
-    private static bool Contains(Tour t, int popularity, double? child, string text)
+    private static bool Contains(Tour t, IReadOnlyList<TourLog> logs, int popularity, double? child, string text)
     {
         return t.Name.Contains(text, StringComparison.OrdinalIgnoreCase)
             || (t.Description?.Contains(text, StringComparison.OrdinalIgnoreCase) ?? false)
@@ -120,7 +121,13 @@ public sealed class TourService : ITourService
             || t.To.Contains(text, StringComparison.OrdinalIgnoreCase)
             || t.TransportType.Contains(text, StringComparison.OrdinalIgnoreCase)
             || popularity.ToString().Contains(text, StringComparison.OrdinalIgnoreCase)
-            || (child?.ToString("F1").Contains(text, StringComparison.OrdinalIgnoreCase) ?? false);
+            || (child?.ToString("F1").Contains(text, StringComparison.OrdinalIgnoreCase) ?? false)
+            || logs.Any(l =>
+                (l.Comment?.Contains(text, StringComparison.OrdinalIgnoreCase) ?? false)
+                || l.Rating.ToString().Contains(text, StringComparison.OrdinalIgnoreCase)
+                || l.Difficulty.ToString().Contains(text, StringComparison.OrdinalIgnoreCase)
+                || l.TotalDistance.ToString().Contains(text, StringComparison.OrdinalIgnoreCase)
+                || l.TotalTime.ToString().Contains(text, StringComparison.OrdinalIgnoreCase));
     }
 
     private static double? ComputeChildFriendliness(IReadOnlyList<TourLog> logs)
