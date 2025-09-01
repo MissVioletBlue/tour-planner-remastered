@@ -10,6 +10,7 @@ public sealed class StubMapService : IMapService
 {
     public Task<RouteResult> GetRouteAsync(string from, string to, CancellationToken ct = default)
     {
-        return Task.FromResult(new RouteResult(0, TimeSpan.Zero, Array.Empty<(double Lat, double Lng)>()));
+        throw new InvalidOperationException(
+            "OpenRouteService API key is not configured. Set 'OpenRouteService:ApiKey' in appsettings.json to enable routing.");
     }
 }

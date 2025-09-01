@@ -15,7 +15,7 @@ The map tab can draw routes using the [OpenRouteService](https://openrouteservic
 }
 ```
 
-When no key is provided the application registers a stub map service and the map tab will not display routes.
+When no key is provided the application registers a stub map service which raises an error, indicating that routing requires an API key.
 
 ## Database & Migrations
 EF Core 8 with Npgsql. When using PostgreSQL, register `AppDbContext` and repositories in DI and run migrations:
