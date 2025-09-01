@@ -150,7 +150,10 @@ public sealed class MapService : IMapService
         // Build simple static map request using openstreetmap static service
         var coords = path.Take(30).Select(p => $"{p.Lat},{p.Lng}");
         var url = "https://staticmap.openstreetmap.de/staticmap.php?size=600x400&path=" + string.Join("|", coords);
-        using var resp = await _http.GetAsync(url, ct);
+        using var req = new HttpRequestMessage(HttpMethod.Get, url);
+        req.Headers.Remove("Authorization");
+        req.Headers.TryAddWithoutValidation("Authorization", _apiKey);
+        using var resp = await _http.SendAsync(req, ct);
         await EnsureSuccessAsync(resp, "Map image");
         var file = Path.Combine(_imageDir, $"{Guid.NewGuid():N}.png");
         await using var fs = File.Create(file);
