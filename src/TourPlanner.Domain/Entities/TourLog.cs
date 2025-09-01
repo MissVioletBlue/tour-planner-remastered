@@ -10,5 +10,6 @@ public record TourLog(
     int Difficulty,
     double TotalDistance,
     TimeSpan TotalTime,
-    int Rating  // 1..5
+    int Rating,  // 1..5
+    int Votes = 0
 );

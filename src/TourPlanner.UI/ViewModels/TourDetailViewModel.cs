@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using log4net;
 using TourPlanner.Application.Common.Exceptions;
 using TourPlanner.Application.Interfaces;
@@ -178,6 +179,7 @@ public class TourDetailViewModel : INotifyPropertyChanged
     public ICommand AddLogCommand { get; }
     public ICommand DeleteLogCommand { get; }
     public ICommand TourReportCommand { get; }
+    public ICommand UpvoteLogCommand { get; }
 
     public event Action<string>? Status;
     public event Action<Tour>? TourUpdated;
@@ -191,6 +193,11 @@ public class TourDetailViewModel : INotifyPropertyChanged
         AddLogCommand = new RelayCommand(async _ => await AddLogAsync(), _ => SelectedTour is not null);
         DeleteLogCommand = new RelayCommand(async _ => await DeleteLogAsync(), _ => SelectedLog is not null);
         TourReportCommand = new RelayCommand(async _ => await GenerateReportAsync(), _ => SelectedTour is not null);
+        UpvoteLogCommand = new RelayCommand(async p =>
+        {
+            if (p is TourLog l)
+                await UpvoteLogAsync(l);
+        });
     }
 
     private async Task GenerateReportAsync()
@@ -236,6 +243,28 @@ public class TourDetailViewModel : INotifyPropertyChanged
         await _tourLogService.DeleteAsync(SelectedLog.Id);
         Logs.Remove(SelectedLog);
         SelectedLog = null;
+    }
+
+    private async Task UpvoteLogAsync(TourLog log)
+    {
+        try
+        {
+            var updated = await _tourLogService.UpvoteAsync(log);
+            if (SelectedTour is not null)
+            {
+                await LoadLogsAsync(SelectedTour.Id);
+                SelectedLog = Logs.FirstOrDefault(l => l.Id == updated.Id);
+            }
+        }
+        catch (NotFoundException)
+        {
+            // Log was deleted concurrently; ignore.
+        }
+        catch (Exception ex)
+        {
+            Status?.Invoke($"Upvote failed: {ex.Message}");
+            Log.Error("Failed to upvote log", ex);
+        }
     }
 
     private async Task SaveTourAsync()

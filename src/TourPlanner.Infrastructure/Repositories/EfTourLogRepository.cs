@@ -16,7 +16,8 @@ public sealed class EfTourLogRepository : ITourLogRepository
         ct.ThrowIfCancellationRequested();
         return await _db.TourLogs.AsNoTracking()
             .Where(x => x.TourId == tourId)
-            .OrderByDescending(x => x.Date)
+            .OrderByDescending(x => x.Votes)
+            .ThenByDescending(x => x.Date)
             .ThenByDescending(x => x.Rating)
             .ToListAsync(ct);
     }

@@ -30,7 +30,7 @@ public sealed class TourLogService : ITourLogService
             DateTimeKind.Local => date.ToUniversalTime(),
             _ => date
         };
-        var log = new TourLog(Guid.NewGuid(), tourId, utcDate, comment?.Trim(), difficulty, totalDistance, totalTime, rating);
+        var log = new TourLog(Guid.NewGuid(), tourId, utcDate, comment?.Trim(), difficulty, totalDistance, totalTime, rating, 0);
         _log.LogInformation("Creating log for tour {TourId}", tourId);
         return await _repo.CreateAsync(log, ct);
     }
@@ -49,6 +49,14 @@ public sealed class TourLogService : ITourLogService
             _ => log.Date
         };
         await _repo.UpdateAsync(log with { Comment = log.Comment?.Trim(), Date = utcDate }, ct);
+    }
+
+    public async Task<TourLog> UpvoteAsync(TourLog log, CancellationToken ct = default)
+    {
+        _log.LogInformation("Upvoting log {Id}", log.Id);
+        var updated = log with { Votes = log.Votes + 1 };
+        await _repo.UpdateAsync(updated, ct);
+        return updated;
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken ct = default)
