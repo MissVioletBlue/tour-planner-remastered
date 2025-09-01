@@ -39,6 +39,7 @@ public sealed class AppDbContext : DbContext
         {
             e.HasKey(x => x.Id);
             e.Property(x => x.Rating).IsRequired();
+            e.Property(x => x.TotalDistance).HasPrecision(9, 2);
             e.HasIndex(x => new { x.TourId, x.Date });
             e.HasIndex(x => new { x.TourId, x.Rating });
         });
