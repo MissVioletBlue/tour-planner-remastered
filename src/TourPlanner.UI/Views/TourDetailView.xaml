@@ -16,9 +16,17 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <TextBlock Grid.Row="0"
-                   Text="{Binding Name, TargetNullValue=No tour selected}"
-                   FontSize="18" FontWeight="Semibold" />
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0"
+                       Text="{Binding Name, TargetNullValue=No tour selected}"
+                       FontSize="18" FontWeight="Semibold" />
+            <Button Grid.Column="1" Content="Tour PDF" Command="{Binding TourReportCommand}"
+                    Margin="8,0,0,0" />
+        </Grid>
 
         <!-- Details -->
         <GroupBox Grid.Row="2" Header="Details" Padding="8">

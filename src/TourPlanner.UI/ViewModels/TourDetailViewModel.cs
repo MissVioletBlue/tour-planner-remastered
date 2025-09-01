@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Diagnostics;
+using System.IO;
 using Serilog;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Domain.Entities;
@@ -15,6 +17,7 @@ public class TourDetailViewModel : INotifyPropertyChanged
 {
     private readonly ITourService _tourService;
     private readonly ITourLogService _tourLogService;
+    private readonly IReportService _reportService;
     private Tour? _selectedTour;
     private TourLog? _selectedLog;
     private string? _name;
@@ -172,17 +175,41 @@ public class TourDetailViewModel : INotifyPropertyChanged
 
     public ICommand AddLogCommand { get; }
     public ICommand DeleteLogCommand { get; }
+    public ICommand TourReportCommand { get; }
 
     public event Action<string>? Status;
     public event Action<Tour>? TourUpdated;
 
-    public TourDetailViewModel(ITourService tourService, ITourLogService tourLogService)
+    public TourDetailViewModel(ITourService tourService, ITourLogService tourLogService, IReportService reportService)
     {
         _tourService = tourService;
         _tourLogService = tourLogService;
+        _reportService = reportService;
 
         AddLogCommand = new RelayCommand(async _ => await AddLogAsync(), _ => SelectedTour is not null);
         DeleteLogCommand = new RelayCommand(async _ => await DeleteLogAsync(), _ => SelectedLog is not null);
+        TourReportCommand = new RelayCommand(async _ => await GenerateReportAsync(), _ => SelectedTour is not null);
+    }
+
+    private async Task GenerateReportAsync()
+    {
+        if (SelectedTour is null) return;
+        try
+        {
+            var bytes = await _reportService.BuildTourReportAsync(SelectedTour.Id);
+            var dir = Path.Combine(AppContext.BaseDirectory, "reports");
+            Directory.CreateDirectory(dir);
+            var name = string.Join("_", SelectedTour.Name.Split(Path.GetInvalidFileNameChars()));
+            var path = Path.Combine(dir, $"{name}.pdf");
+            await File.WriteAllBytesAsync(path, bytes);
+            Status?.Invoke($"Report saved: {path}");
+            try { Process.Start(new ProcessStartInfo(path) { UseShellExecute = true }); } catch { }
+        }
+        catch (Exception ex)
+        {
+            Status?.Invoke($"Report failed: {ex.Message}");
+            Log.Error(ex, "Report generation failed");
+        }
     }
 
     private async Task LoadLogsAsync(Guid tourId)

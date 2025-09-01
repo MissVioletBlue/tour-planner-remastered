@@ -7,6 +7,8 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Diagnostics;
+using System.IO;
 using Serilog;
 using TourPlanner.Application.Contracts;
 using TourPlanner.Application.Interfaces;
@@ -18,6 +20,7 @@ namespace TourPlanner.UI.ViewModels;
 public class TourListViewModel : INotifyPropertyChanged
 {
     private readonly ITourService _tourService;
+    private readonly IReportService _reportService;
     private readonly Dictionary<Guid, TourSummaryDto> _stats = new();
     private string _searchText = "";
     private Tour? _selectedTour;
@@ -49,10 +52,12 @@ public class TourListViewModel : INotifyPropertyChanged
     public ICommand AddCommand { get; }
     public ICommand DeleteCommand { get; }
     public ICommand FocusSearchCommand { get; }
+    public ICommand GenerateSummaryCommand { get; }
 
-    public TourListViewModel(ITourService tourService)
+    public TourListViewModel(ITourService tourService, IReportService reportService)
     {
         _tourService = tourService;
+        _reportService = reportService;
 
         ToursView = CollectionViewSource.GetDefaultView(Tours);
         ToursView.Filter = FilterBySearch;
@@ -60,8 +65,30 @@ public class TourListViewModel : INotifyPropertyChanged
         AddCommand = new RelayCommand(async _ => await AddAsync(), _ => !IsBusy);
         DeleteCommand = new RelayCommand(async _ => await DeleteAsync(), _ => !IsBusy && SelectedTour is not null);
         FocusSearchCommand = new RelayCommand(_ => Status?.Invoke("Focus search (Ctrl+F)"));
+        GenerateSummaryCommand = new RelayCommand(async _ => await GenerateSummaryAsync(), _ => !IsBusy);
 
         _ = LoadToursAsync();
+    }
+
+    private async Task GenerateSummaryAsync()
+    {
+        try
+        {
+            IsBusy = true;
+            var bytes = await _reportService.BuildSummaryReportAsync();
+            var dir = Path.Combine(AppContext.BaseDirectory, "reports");
+            Directory.CreateDirectory(dir);
+            var path = Path.Combine(dir, "Summary.pdf");
+            await File.WriteAllBytesAsync(path, bytes);
+            Status?.Invoke($"Summary saved: {path}");
+            try { Process.Start(new ProcessStartInfo(path) { UseShellExecute = true }); } catch { }
+        }
+        catch (Exception ex)
+        {
+            Status?.Invoke($"Summary report failed: {ex.Message}");
+            Log.Error(ex, "Summary report failed");
+        }
+        finally { IsBusy = false; }
     }
 
     public async Task LoadToursAsync()

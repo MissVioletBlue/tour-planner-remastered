@@ -37,7 +37,10 @@
                 <TextBlock Text="{Binding StatusMessage}" />
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
-                <TextBlock Text="{Binding DataMode}" />
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding DataMode}" Margin="0,0,8,0" />
+                    <Button Content="Open Log" Command="{Binding OpenLogCommand}" />
+                </StackPanel>
             </StatusBarItem>
         </StatusBar>
     </Grid>

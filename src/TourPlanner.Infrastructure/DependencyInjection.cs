@@ -20,11 +20,13 @@ public static class DependencyInjection
             services.AddDbContext<AppDbContext>(o => o.UseNpgsql(cs));
             services.AddScoped<ITourRepository, EfTourRepository>();
             services.AddScoped<ITourLogRepository, EfTourLogRepository>();
+            services.AddSingleton<IReportService, ReportService>();
         }
         else
         {
             services.AddSingleton<ITourRepository, InMemoryTourRepository>();
             services.AddSingleton<ITourLogRepository, InMemoryTourLogRepository>();
+            services.AddSingleton<IReportService, NullReportService>();
         }
 
         var apiKey = cfg["OpenRouteService:ApiKey"];

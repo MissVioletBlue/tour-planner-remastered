@@ -16,6 +16,7 @@
         <ToolBar DockPanel.Dock="Top">
             <Button Content="New (Ctrl+N)" Command="{Binding AddCommand}" />
             <Button Content="Delete (Del)" Command="{Binding DeleteCommand}" Margin="8,0,0,0" />
+            <Button Content="Summary PDF" Command="{Binding GenerateSummaryCommand}" Margin="8,0,0,0" />
             <Separator/>
             <TextBox x:Name="SearchBox"
                      Width="200"
