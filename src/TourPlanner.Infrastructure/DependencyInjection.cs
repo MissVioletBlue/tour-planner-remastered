@@ -12,7 +12,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration cfg)
     {
-        var useEf = cfg.GetValue("Data:UseEf", false);
+        var useEf = cfg.GetValue<bool>("Data:UseEf", false);
         if (useEf)
         {
             var cs = cfg.GetConnectionString("Postgres")!;
