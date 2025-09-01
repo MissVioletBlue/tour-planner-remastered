@@ -103,12 +103,22 @@ public class TourListViewModel : INotifyPropertyChanged
         try
         {
             IsBusy = true;
-            var tour = await _tourService.CreateAsync("New Tour", null, "Start", "End", "car");
+            var tour = await _tourService.CreateAsync(
+                "New Tour",
+                null,
+                "Vienna, Austria",
+                "Graz, Austria",
+                "car");
             Tours.Add(tour);
             _stats[tour.Id] = new TourSummaryDto(tour.Id, tour.Name, tour.DistanceKm, 0, null, null);
             SelectedTour = tour;
             Status?.Invoke($"Added: {tour.Name}");
             Log.Information("Added tour {TourName}", tour.Name);
+        }
+        catch (Exception ex)
+        {
+            Status?.Invoke($"Add failed: {ex.Message}");
+            Log.Error(ex, "Failed to add tour");
         }
         finally { IsBusy = false; }
     }

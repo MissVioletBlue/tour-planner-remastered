@@ -37,6 +37,7 @@ namespace TourPlanner.UI.ViewModels
             };
 
             TourList.Status += msg => StatusMessage = msg;
+            TourDetail.Status += msg => StatusMessage = msg;
             TourDetail.TourUpdated += t => TourList.ReplaceTour(t);
         }
 

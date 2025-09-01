@@ -173,6 +173,7 @@ public class TourDetailViewModel : INotifyPropertyChanged
     public ICommand AddLogCommand { get; }
     public ICommand DeleteLogCommand { get; }
 
+    public event Action<string>? Status;
     public event Action<Tour>? TourUpdated;
 
     public TourDetailViewModel(ITourService tourService, ITourLogService tourLogService)
@@ -210,39 +211,55 @@ public class TourDetailViewModel : INotifyPropertyChanged
     private async Task SaveTourAsync()
     {
         if (_suppressTourSave || _selectedTour is null) return;
-        var updated = _selectedTour with
+        try
         {
-            Name = Name ?? "",
-            Description = Description,
-            From = From,
-            To = To,
-            TransportType = TransportType
-        };
-        var saved = await _tourService.UpdateAsync(updated);
-        _selectedTour = saved;
-        DistanceKm = saved.DistanceKm;
-        EstimatedTime = saved.EstimatedTime;
-        OnPropertyChanged(nameof(SelectedTour));
-        TourUpdated?.Invoke(saved);
+            var updated = _selectedTour with
+            {
+                Name = Name ?? "",
+                Description = Description,
+                From = From,
+                To = To,
+                TransportType = TransportType
+            };
+            var saved = await _tourService.UpdateAsync(updated);
+            _selectedTour = saved;
+            DistanceKm = saved.DistanceKm;
+            EstimatedTime = saved.EstimatedTime;
+            OnPropertyChanged(nameof(SelectedTour));
+            TourUpdated?.Invoke(saved);
+        }
+        catch (Exception ex)
+        {
+            Status?.Invoke($"Save failed: {ex.Message}");
+            Log.Error(ex, "Failed to save tour");
+        }
     }
 
     private async Task SaveLogAsync()
     {
         if (_suppressLogSave || _selectedLog is null) return;
-        var updated = _selectedLog with
+        try
         {
-            Date = LogDate,
-            Comment = LogComment,
-            Rating = LogRating,
-            Difficulty = LogDifficulty,
-            TotalDistance = LogDistance,
-            TotalTime = LogTime
-        };
-        await _tourLogService.UpdateAsync(updated);
-        var idx = Logs.IndexOf(_selectedLog);
-        if (idx >= 0) Logs[idx] = updated;
-        _selectedLog = updated;
-        OnPropertyChanged(nameof(SelectedLog));
+            var updated = _selectedLog with
+            {
+                Date = LogDate,
+                Comment = LogComment,
+                Rating = LogRating,
+                Difficulty = LogDifficulty,
+                TotalDistance = LogDistance,
+                TotalTime = LogTime
+            };
+            await _tourLogService.UpdateAsync(updated);
+            var idx = Logs.IndexOf(_selectedLog);
+            if (idx >= 0) Logs[idx] = updated;
+            _selectedLog = updated;
+            OnPropertyChanged(nameof(SelectedLog));
+        }
+        catch (Exception ex)
+        {
+            Status?.Invoke($"Log save failed: {ex.Message}");
+            Log.Error(ex, "Failed to save log");
+        }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
