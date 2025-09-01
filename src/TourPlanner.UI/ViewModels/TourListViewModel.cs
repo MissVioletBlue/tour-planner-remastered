@@ -21,7 +21,9 @@ public class TourListViewModel : INotifyPropertyChanged
 {
     private readonly ITourService _tourService;
     private readonly IReportService _reportService;
+    private readonly ITourLogService _tourLogService;
     private readonly Dictionary<Guid, TourSummaryDto> _stats = new();
+    private readonly Dictionary<Guid, IReadOnlyList<TourLog>> _logs = new();
     private static readonly ILog Log = LogManager.GetLogger(typeof(TourListViewModel));
     private string _searchText = "";
     private Tour? _selectedTour;
@@ -55,10 +57,11 @@ public class TourListViewModel : INotifyPropertyChanged
     public ICommand FocusSearchCommand { get; }
     public ICommand GenerateSummaryCommand { get; }
 
-    public TourListViewModel(ITourService tourService, IReportService reportService)
+    public TourListViewModel(ITourService tourService, IReportService reportService, ITourLogService tourLogService)
     {
         _tourService = tourService;
         _reportService = reportService;
+        _tourLogService = tourLogService;
 
         ToursView = CollectionViewSource.GetDefaultView(Tours);
         ToursView.Filter = FilterBySearch;
@@ -99,10 +102,15 @@ public class TourListViewModel : INotifyPropertyChanged
             IsBusy = true;
             Tours.Clear();
             _stats.Clear();
+            _logs.Clear();
             var tours = await _tourService.GetAllAsync();
             var summaries = await _tourService.GetSummariesAsync();
             foreach (var s in summaries) _stats[s.Id] = s;
-            foreach (var t in tours) Tours.Add(t);
+            foreach (var t in tours)
+            {
+                Tours.Add(t);
+                _logs[t.Id] = await _tourLogService.GetByTourAsync(t.Id);
+            }
         }
         finally { IsBusy = false; }
     }
@@ -121,7 +129,20 @@ public class TourListViewModel : INotifyPropertyChanged
         if (_stats.TryGetValue(t.Id, out var stat))
         {
             if (stat.Popularity.ToString().Contains(text, StringComparison.OrdinalIgnoreCase)) return true;
+            if ((stat.AverageRating?.ToString("F1").Contains(text, StringComparison.OrdinalIgnoreCase) ?? false)) return true;
             if ((stat.ChildFriendliness?.ToString("F1").Contains(text, StringComparison.OrdinalIgnoreCase) ?? false)) return true;
+        }
+        if (_logs.TryGetValue(t.Id, out var logs))
+        {
+            foreach (var l in logs)
+            {
+                if ((l.Comment?.Contains(text, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    l.Difficulty.ToString().Contains(text, StringComparison.OrdinalIgnoreCase) ||
+                    l.Rating.ToString().Contains(text, StringComparison.OrdinalIgnoreCase) ||
+                    l.TotalDistance.ToString().Contains(text, StringComparison.OrdinalIgnoreCase) ||
+                    l.TotalTime.ToString().Contains(text, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
         }
         return false;
     }
@@ -139,6 +160,7 @@ public class TourListViewModel : INotifyPropertyChanged
                 "car");
             Tours.Add(tour);
             _stats[tour.Id] = new TourSummaryDto(tour.Id, tour.Name, tour.DistanceKm, 0, null, null);
+            _logs[tour.Id] = Array.Empty<TourLog>();
             SelectedTour = tour;
             Status?.Invoke($"Added: {tour.Name}");
             Log.Info($"Added tour {tour.Name}");
@@ -160,6 +182,7 @@ public class TourListViewModel : INotifyPropertyChanged
             var name = SelectedTour.Name;
             await _tourService.DeleteAsync(SelectedTour.Id);
             _stats.Remove(SelectedTour.Id);
+            _logs.Remove(SelectedTour.Id);
             Tours.Remove(SelectedTour);
             SelectedTour = null;
             Status?.Invoke($"Deleted: {name}");
