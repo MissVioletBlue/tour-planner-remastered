@@ -13,23 +13,30 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="420" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
 
-        <!-- Master (list) -->
-        <local:TourListView Grid.Row="0" Grid.Column="0"
-                            DataContext="{Binding TourList}" />
+        <TabControl Grid.Row="0">
+            <TabItem Header="Tours">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="420" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-        <!-- Detail (properties + logs) -->
-        <local:TourDetailView Grid.Row="0" Grid.Column="1"
-                              DataContext="{Binding TourDetail}" />
+                    <local:TourListView Grid.Column="0" DataContext="{Binding TourList}" />
+                    <local:TourDetailView Grid.Column="1" DataContext="{Binding TourDetail}" />
+                </Grid>
+            </TabItem>
+            <TabItem Header="Map">
+                <local:MapView DataContext="{Binding MapVm}" />
+            </TabItem>
+        </TabControl>
 
-        <!-- Statusbar -->
-        <StatusBar Grid.Row="1" Grid.ColumnSpan="2">
+        <StatusBar Grid.Row="1">
             <StatusBarItem>
                 <TextBlock Text="{Binding StatusMessage}" />
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <TextBlock Text="{Binding DataMode}" />
             </StatusBarItem>
         </StatusBar>
     </Grid>
