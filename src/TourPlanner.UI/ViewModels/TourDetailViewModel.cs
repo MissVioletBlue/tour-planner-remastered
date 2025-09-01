@@ -19,10 +19,17 @@ public class TourDetailViewModel : INotifyPropertyChanged
     private TourLog? _selectedLog;
     private string? _name;
     private string? _description;
+    private string _from = "";
+    private string _to = "";
+    private string _transport = "car";
     private double _distanceKm;
+    private TimeSpan _estimatedTime;
     private DateTime _logDate = DateTime.Today;
     private int _logRating = 3;
-    private string? _logNotes;
+    private string? _logComment;
+    private int _logDifficulty = 1;
+    private double _logDistance;
+    private TimeSpan _logTime;
     private bool _suppressTourSave;
     private bool _suppressLogSave;
 
@@ -40,14 +47,22 @@ public class TourDetailViewModel : INotifyPropertyChanged
             {
                 Name = value.Name;
                 Description = value.Description;
+                From = value.From;
+                To = value.To;
+                TransportType = value.TransportType;
                 DistanceKm = value.DistanceKm;
+                EstimatedTime = value.EstimatedTime;
                 _ = LoadLogsAsync(value.Id);
             }
             else
             {
                 Name = null;
                 Description = null;
+                From = string.Empty;
+                To = string.Empty;
+                TransportType = "car";
                 DistanceKm = 0;
+                EstimatedTime = TimeSpan.Zero;
                 Logs.Clear();
             }
             _suppressTourSave = false;
@@ -67,10 +82,34 @@ public class TourDetailViewModel : INotifyPropertyChanged
         set { _description = value; OnPropertyChanged(); _ = SaveTourAsync(); }
     }
 
+    public string From
+    {
+        get => _from;
+        set { _from = value; OnPropertyChanged(); _ = SaveTourAsync(); }
+    }
+
+    public string To
+    {
+        get => _to;
+        set { _to = value; OnPropertyChanged(); _ = SaveTourAsync(); }
+    }
+
+    public string TransportType
+    {
+        get => _transport;
+        set { _transport = value; OnPropertyChanged(); _ = SaveTourAsync(); }
+    }
+
     public double DistanceKm
     {
         get => _distanceKm;
-        set { _distanceKm = value; OnPropertyChanged(); _ = SaveTourAsync(); }
+        private set { _distanceKm = value; OnPropertyChanged(); }
+    }
+
+    public TimeSpan EstimatedTime
+    {
+        get => _estimatedTime;
+        private set { _estimatedTime = value; OnPropertyChanged(); }
     }
 
     public TourLog? SelectedLog
@@ -85,7 +124,10 @@ public class TourDetailViewModel : INotifyPropertyChanged
             {
                 LogDate = value.Date;
                 LogRating = value.Rating;
-                LogNotes = value.Notes;
+                LogComment = value.Comment;
+                LogDifficulty = value.Difficulty;
+                LogDistance = value.TotalDistance;
+                LogTime = value.TotalTime;
             }
             _suppressLogSave = false;
             CommandManager.InvalidateRequerySuggested();
@@ -104,10 +146,28 @@ public class TourDetailViewModel : INotifyPropertyChanged
         set { _logRating = value; OnPropertyChanged(); _ = SaveLogAsync(); }
     }
 
-    public string? LogNotes
+    public string? LogComment
     {
-        get => _logNotes;
-        set { _logNotes = value; OnPropertyChanged(); _ = SaveLogAsync(); }
+        get => _logComment;
+        set { _logComment = value; OnPropertyChanged(); _ = SaveLogAsync(); }
+    }
+
+    public int LogDifficulty
+    {
+        get => _logDifficulty;
+        set { _logDifficulty = value; OnPropertyChanged(); _ = SaveLogAsync(); }
+    }
+
+    public double LogDistance
+    {
+        get => _logDistance;
+        set { _logDistance = value; OnPropertyChanged(); _ = SaveLogAsync(); }
+    }
+
+    public TimeSpan LogTime
+    {
+        get => _logTime;
+        set { _logTime = value; OnPropertyChanged(); _ = SaveLogAsync(); }
     }
 
     public ICommand AddLogCommand { get; }
@@ -134,7 +194,7 @@ public class TourDetailViewModel : INotifyPropertyChanged
     private async Task AddLogAsync()
     {
         if (SelectedTour is null) return;
-        var log = await _tourLogService.CreateAsync(SelectedTour.Id, DateTime.Today, "", 3);
+        var log = await _tourLogService.CreateAsync(SelectedTour.Id, DateTime.Today, "", 1, SelectedTour.DistanceKm, SelectedTour.EstimatedTime, 3);
         Logs.Add(log);
         Log.Information("Added log to tour {TourName}", SelectedTour.Name);
     }
@@ -150,17 +210,34 @@ public class TourDetailViewModel : INotifyPropertyChanged
     private async Task SaveTourAsync()
     {
         if (_suppressTourSave || _selectedTour is null) return;
-        var updated = _selectedTour with { Name = Name ?? "", Description = Description, DistanceKm = DistanceKm };
-        await _tourService.UpdateAsync(updated);
-        _selectedTour = updated;
+        var updated = _selectedTour with
+        {
+            Name = Name ?? "",
+            Description = Description,
+            From = From,
+            To = To,
+            TransportType = TransportType
+        };
+        var saved = await _tourService.UpdateAsync(updated);
+        _selectedTour = saved;
+        DistanceKm = saved.DistanceKm;
+        EstimatedTime = saved.EstimatedTime;
         OnPropertyChanged(nameof(SelectedTour));
-        TourUpdated?.Invoke(updated);
+        TourUpdated?.Invoke(saved);
     }
 
     private async Task SaveLogAsync()
     {
         if (_suppressLogSave || _selectedLog is null) return;
-        var updated = _selectedLog with { Date = LogDate, Notes = LogNotes, Rating = LogRating };
+        var updated = _selectedLog with
+        {
+            Date = LogDate,
+            Comment = LogComment,
+            Rating = LogRating,
+            Difficulty = LogDifficulty,
+            TotalDistance = LogDistance,
+            TotalTime = LogTime
+        };
         await _tourLogService.UpdateAsync(updated);
         var idx = Logs.IndexOf(_selectedLog);
         if (idx >= 0) Logs[idx] = updated;

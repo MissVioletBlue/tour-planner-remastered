@@ -1,8 +1,16 @@
+using System;
+using System.Collections.Generic;
+
 namespace TourPlanner.Domain.Entities;
 
 public record Tour(
     Guid Id,
     string Name,
     string? Description,
-    double DistanceKm
+    string From,
+    string To,
+    string TransportType,
+    double DistanceKm,
+    TimeSpan EstimatedTime,
+    IReadOnlyList<(double Lat, double Lng)> Route
 );

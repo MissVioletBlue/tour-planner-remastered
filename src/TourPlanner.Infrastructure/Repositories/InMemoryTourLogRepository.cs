@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Domain.Entities;
 

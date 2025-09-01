@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using TourPlanner.Domain.Entities;
 using TourPlanner.Infrastructure.Persistence;
 using TourPlanner.Infrastructure.Services;
+using TourPlanner.Tests.Utils;
 using Xunit;
 
 namespace TourPlanner.Tests.Infrastructure;
@@ -27,8 +27,8 @@ public class ExportServiceTests
         var logRepo = new TourPlanner.Infrastructure.Repositories.EfTourLogRepository(db);
         var svc = new ExportService(db);
 
-        var t = await repo.CreateAsync(new(Guid.NewGuid(), "Round", null, 1));
-        await logRepo.CreateAsync(new(Guid.NewGuid(), t.Id, DateTime.Today, "ok", 3));
+        var t = await repo.CreateAsync(TestHelper.NewTour("Round", 1));
+        await logRepo.CreateAsync(TestHelper.NewLog(t.Id, "ok", 3));
 
         var json = await svc.ExportToursAsync(new[] { t.Id }, "json");
 

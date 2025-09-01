@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using Serilog;
+using TourPlanner.Application.Contracts;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Domain.Entities;
 using TourPlanner.UI.Commands;
@@ -16,6 +18,7 @@ namespace TourPlanner.UI.ViewModels;
 public class TourListViewModel : INotifyPropertyChanged
 {
     private readonly ITourService _tourService;
+    private readonly Dictionary<Guid, TourSummaryDto> _stats = new();
     private string _searchText = "";
     private Tour? _selectedTour;
     private bool _isBusy;
@@ -67,7 +70,10 @@ public class TourListViewModel : INotifyPropertyChanged
         {
             IsBusy = true;
             Tours.Clear();
+            _stats.Clear();
             var tours = await _tourService.GetAllAsync();
+            var summaries = await _tourService.GetSummariesAsync();
+            foreach (var s in summaries) _stats[s.Id] = s;
             foreach (var t in tours) Tours.Add(t);
         }
         finally { IsBusy = false; }
@@ -77,7 +83,19 @@ public class TourListViewModel : INotifyPropertyChanged
     {
         if (obj is not Tour t) return false;
         if (string.IsNullOrWhiteSpace(SearchText)) return true;
-        return t.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase);
+        var text = SearchText;
+        if (t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+            (t.Description?.Contains(text, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            t.From.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+            t.To.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+            t.TransportType.Contains(text, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (_stats.TryGetValue(t.Id, out var stat))
+        {
+            if (stat.Popularity.ToString().Contains(text, StringComparison.OrdinalIgnoreCase)) return true;
+            if ((stat.ChildFriendliness?.ToString("F1").Contains(text, StringComparison.OrdinalIgnoreCase) ?? false)) return true;
+        }
+        return false;
     }
 
     private async Task AddAsync()
@@ -85,8 +103,9 @@ public class TourListViewModel : INotifyPropertyChanged
         try
         {
             IsBusy = true;
-            var tour = await _tourService.CreateAsync("New Tour", null, 1.0);
+            var tour = await _tourService.CreateAsync("New Tour", null, "Start", "End", "car");
             Tours.Add(tour);
+            _stats[tour.Id] = new TourSummaryDto(tour.Id, tour.Name, tour.DistanceKm, 0, null, null);
             SelectedTour = tour;
             Status?.Invoke($"Added: {tour.Name}");
             Log.Information("Added tour {TourName}", tour.Name);
@@ -102,6 +121,7 @@ public class TourListViewModel : INotifyPropertyChanged
             IsBusy = true;
             var name = SelectedTour.Name;
             await _tourService.DeleteAsync(SelectedTour.Id);
+            _stats.Remove(SelectedTour.Id);
             Tours.Remove(SelectedTour);
             SelectedTour = null;
             Status?.Invoke($"Deleted: {name}");

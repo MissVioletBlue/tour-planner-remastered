@@ -1,8 +1,8 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore;
-using TourPlanner.Domain.Entities;
 using TourPlanner.Infrastructure.Persistence;
 using TourPlanner.Infrastructure.Services;
+using TourPlanner.Tests.Utils;
 using Xunit;
 
 namespace TourPlanner.Tests.Infrastructure;
@@ -28,8 +28,8 @@ public class ReportServiceTests
         var logRepo = new TourPlanner.Infrastructure.Repositories.EfTourLogRepository(db);
         var svc = new ReportService(db);
 
-        var t = await repo.CreateAsync(new(Guid.NewGuid(), "PdfTest", null, 1));
-        await logRepo.CreateAsync(new(Guid.NewGuid(), t.Id, DateTime.Today, "note", 4));
+        var t = await repo.CreateAsync(TestHelper.NewTour("PdfTest", 1));
+        await logRepo.CreateAsync(TestHelper.NewLog(t.Id, "note", 4));
 
         var bytes = await svc.BuildTourReportAsync(t.Id);
         Assert.True(bytes.Length > 0);

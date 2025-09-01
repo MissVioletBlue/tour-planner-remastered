@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using TourPlanner.Application.Contracts;
-using TourPlanner.Domain.Entities;
 using TourPlanner.Infrastructure.Persistence;
 using TourPlanner.Infrastructure.Repositories;
+using TourPlanner.Tests.Utils;
 using Xunit;
 
 namespace TourPlanner.Tests.Infrastructure;
@@ -27,7 +27,7 @@ public class TourRepositoryPagingLargeTests
         var repo = new EfTourRepository(db);
 
         for (int i = 1; i <= 1000; i++)
-            await repo.CreateAsync(new(Guid.NewGuid(), $"Tour {i:D4}", null, i % 100));
+            await repo.CreateAsync(TestHelper.NewTour($"Tour {i:D4}", i % 100));
 
         var p1 = await repo.SearchAsync(new SearchRequest("Tour", null, null, null, "Name", false, 1, 50));
         var p2 = await repo.SearchAsync(new SearchRequest("Tour", null, null, null, "Name", false, 2, 50));

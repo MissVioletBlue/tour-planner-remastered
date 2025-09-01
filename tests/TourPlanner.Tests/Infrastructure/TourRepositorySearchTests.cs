@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using TourPlanner.Application.Contracts;
-using TourPlanner.Domain.Entities;
 using TourPlanner.Infrastructure.Persistence;
 using TourPlanner.Infrastructure.Repositories;
+using TourPlanner.Tests.Utils;
 using Xunit;
 
 namespace TourPlanner.Tests.Infrastructure;
@@ -27,11 +27,11 @@ public class TourRepositorySearchTests
         var tours = new EfTourRepository(db);
         var logs  = new EfTourLogRepository(db);
 
-        var t1 = await tours.CreateAsync(new(Guid.NewGuid(), "Alps Trail", null, 12));
-        var t2 = await tours.CreateAsync(new(Guid.NewGuid(), "City Walk", null, 3));
-        await logs.CreateAsync(new(Guid.NewGuid(), t1.Id, new DateTime(2025, 1, 10), "ok", 3));
-        await logs.CreateAsync(new(Guid.NewGuid(), t1.Id, new DateTime(2025, 2, 10), "great", 5));
-        await logs.CreateAsync(new(Guid.NewGuid(), t2.Id, new DateTime(2025, 1, 15), "meh", 2));
+        var t1 = await tours.CreateAsync(TestHelper.NewTour("Alps Trail", 12));
+        var t2 = await tours.CreateAsync(TestHelper.NewTour("City Walk", 3));
+        await logs.CreateAsync(TestHelper.NewLog(t1.Id, "ok", 3) with { Date = new DateTime(2025,1,10) });
+        await logs.CreateAsync(TestHelper.NewLog(t1.Id, "great", 5) with { Date = new DateTime(2025,2,10) });
+        await logs.CreateAsync(TestHelper.NewLog(t2.Id, "meh", 2) with { Date = new DateTime(2025,1,15) });
 
         var resText = await tours.SearchAsync(new SearchRequest("Alps", null, null, null, "Name", false, 1, 10));
         Assert.Single(resText.Items);

@@ -38,7 +38,7 @@ public sealed class ReportService : IReportService
                     col.Item().Text($"Distance: {tour.DistanceKm} km");
                     col.Item().Text($"Logs: {logs.Count}");
                     foreach (var l in logs)
-                        col.Item().Text($"{l.Date:yyyy-MM-dd}  ★{l.Rating}  {l.Notes}");
+                        col.Item().Text($"{l.Date:yyyy-MM-dd}  ★{l.Rating}  {l.Comment}");
                 });
             });
         }).GeneratePdf(stream);

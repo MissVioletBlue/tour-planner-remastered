@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using TourPlanner.Domain.Entities;
 using TourPlanner.Infrastructure.Persistence;
 using TourPlanner.Infrastructure.Repositories;
+using TourPlanner.Tests.Utils;
 using Xunit;
 
 namespace TourPlanner.Tests.Infrastructure;
@@ -26,8 +26,8 @@ public class TourLogRepositoryTests
         var tours = new EfTourRepository(db);
         var logs  = new EfTourLogRepository(db);
 
-        var t = await tours.CreateAsync(new(Guid.NewGuid(), "Vienna Ring", null, 6.2));
-        var l = await logs.CreateAsync(new(Guid.NewGuid(), t.Id, DateTime.Today, "Nice", 4));
+        var t = await tours.CreateAsync(TestHelper.NewTour("Vienna Ring", 6.2));
+        var l = await logs.CreateAsync(TestHelper.NewLog(t.Id, "Nice", 4));
 
         var byTour = await logs.GetByTourAsync(t.Id);
         Assert.Single(byTour);
