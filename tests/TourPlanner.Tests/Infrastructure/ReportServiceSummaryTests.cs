@@ -28,7 +28,7 @@ public class ReportServiceSummaryTests
         var logs  = new EfTourLogRepository(db);
         var t = await tours.CreateAsync(TestHelper.NewTour("S1", 5));
         await logs.CreateAsync(TestHelper.NewLog(t.Id, "ok", 4));
-        var svc = new ReportService(db);
+        var svc = new ReportService(tours, logs);
         var bytes = await svc.BuildSummaryReportAsync();
         Assert.True(bytes.Length > 0);
         var ascii = Encoding.ASCII.GetString(bytes);

@@ -26,7 +26,7 @@ public class ReportServiceTests
         using var db = NewDb();
         var repo = new TourPlanner.Infrastructure.Repositories.EfTourRepository(db);
         var logRepo = new TourPlanner.Infrastructure.Repositories.EfTourLogRepository(db);
-        var svc = new ReportService(db);
+        var svc = new ReportService(repo, logRepo);
 
         var t = await repo.CreateAsync(TestHelper.NewTour("PdfTest", 1));
         await logRepo.CreateAsync(TestHelper.NewLog(t.Id, "note", 4));
