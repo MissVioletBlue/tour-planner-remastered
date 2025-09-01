@@ -197,6 +197,7 @@ public class TourDetailViewModel : INotifyPropertyChanged
         if (SelectedTour is null) return;
         var log = await _tourLogService.CreateAsync(SelectedTour.Id, DateTime.Today, "", 1, SelectedTour.DistanceKm, SelectedTour.EstimatedTime, 3);
         Logs.Add(log);
+        SelectedLog = log;
         Log.Information("Added log to tour {TourName}", SelectedTour.Name);
     }
 

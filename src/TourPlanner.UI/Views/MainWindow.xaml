@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="{Binding Title}"
         Height="720" Width="1200"
-        MinHeight="600" MinWidth="900"
+        MinHeight="800" MinWidth="900"
         WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
