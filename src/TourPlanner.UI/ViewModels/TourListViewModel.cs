@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Data;
 using System.Windows.Input;
+using Serilog;
 using TourPlanner.UI.Commands;
 using TourPlanner.UI.Models;
 
@@ -83,6 +84,7 @@ namespace TourPlanner.UI.ViewModels
                 Tours.Add(tour);
                 SelectedTour = tour;
                 _status($"Added: {tour.Name}");
+                Log.Information("Added tour {TourName}", tour.Name);
             }
             finally { IsBusy = false; }
         }
@@ -97,6 +99,7 @@ namespace TourPlanner.UI.ViewModels
                 Tours.Remove(SelectedTour);
                 SelectedTour = null;
                 _status($"Deleted: {name}");
+                Log.Information("Deleted tour {TourName}", name);
             }
             finally { IsBusy = false; }
         }
