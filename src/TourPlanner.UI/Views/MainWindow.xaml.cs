@@ -1,16 +1,14 @@
 using System.Windows;
+using TourPlanner.UI.ViewModels;
 
-namespace TourPlanner.UI.Views;
-
-public partial class MainWindow : Window
+namespace TourPlanner.UI.Views
 {
-    public MainWindow()
+    public partial class MainWindow : Window
     {
-        InitializeComponent();
-    }
-
-    private void TextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-    {
-
+        public MainWindow()
+        {
+            InitializeComponent();
+            DataContext = new MainViewModel();
+        }
     }
 }

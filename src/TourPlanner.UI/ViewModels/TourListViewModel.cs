@@ -1,53 +1,108 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TourPlanner.Application.Interfaces;
-using TourPlanner.Domain.Entities;
-using TourPlanner.Application.Services;
 using System.Collections.ObjectModel;
-using TourPlanner.UI.Views;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
-
+using System.Windows.Data;
+using System.Windows.Input;
+using TourPlanner.UI.Commands;
+using TourPlanner.UI.Models;
 
 namespace TourPlanner.UI.ViewModels
 {
-     public class TourListViewModel : ViewModelBase
+    public class TourListViewModel : INotifyPropertyChanged
     {
-        public TourListViewModel(ObservableCollection<Tour> tours)
+        private readonly Action<string> _status;
+        private string _searchText = "";
+        private Tour? _selectedTour;
+        private bool _isBusy;
+
+        public ObservableCollection<Tour> Tours { get; }
+        public ICollectionView ToursView { get; }
+
+        public string SearchText
+        {
+            get => _searchText;
+            set { _searchText = value; OnPropertyChanged(); ToursView.Refresh(); }
+        }
+
+        public Tour? SelectedTour
+        {
+            get => _selectedTour;
+            set { _selectedTour = value; OnPropertyChanged(); CommandManager.InvalidateRequerySuggested(); }
+        }
+
+        public bool IsBusy
+        {
+            get => _isBusy;
+            private set { _isBusy = value; OnPropertyChanged(); CommandManager.InvalidateRequerySuggested(); }
+        }
+
+        public ICommand AddCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand FocusSearchCommand { get; }
+
+        public TourListViewModel(ObservableCollection<Tour> tours, Action<string> statusReporter)
         {
             Tours = tours;
-        }
-        public ObservableCollection<Tour> Tours { get; }
+            _status = statusReporter;
 
+            ToursView = CollectionViewSource.GetDefaultView(Tours);
+            ToursView.Filter = FilterBySearch;
 
-    }
-
-
-        public abstract class ViewModelBase : INotifyPropertyChanged
-    {
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            AddCommand = new RelayCommand(_ => Add(), _ => !IsBusy);
+            DeleteCommand = new RelayCommand(_ => Delete(), _ => !IsBusy && SelectedTour is not null);
+            FocusSearchCommand = new RelayCommand(_ => _status("Focus search (Ctrl+F)"));
         }
 
-        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = "")
+        private bool FilterBySearch(object obj)
         {
-            if (Equals(storage, value))
-                return false;
+            if (obj is not Tour t) return false;
+            if (string.IsNullOrWhiteSpace(SearchText)) return true;
+            return t.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase);
+        }
 
-            storage = value;
-            OnPropertyChanged(propertyName);
-            return true;
+        private void Add()
+        {
+            try
+            {
+                IsBusy = true;
+                var nameBase = "New Tour";
+                var name = nameBase;
+                int i = 1;
+                while (Tours.Any(t => string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase)))
+                    name = $"{nameBase} ({i++})";
+
+                var tour = new Tour
+                {
+                    Name = name,
+                    From = "Start",
+                    To = "Finish",
+                    DistanceKm = 1.0
+                };
+                Tours.Add(tour);
+                SelectedTour = tour;
+                _status($"Added: {tour.Name}");
+            }
+            finally { IsBusy = false; }
+        }
+
+        private void Delete()
+        {
+            if (SelectedTour is null) return;
+            try
+            {
+                IsBusy = true;
+                var name = SelectedTour.Name;
+                Tours.Remove(SelectedTour);
+                SelectedTour = null;
+                _status($"Deleted: {name}");
+            }
+            finally { IsBusy = false; }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
-
-
-
-
-
 }
