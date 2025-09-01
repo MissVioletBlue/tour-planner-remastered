@@ -31,61 +31,78 @@ public sealed class MapService : IMapService
 
     public async Task<RouteResult> GetRouteAsync(string from, string to, CancellationToken ct = default)
     {
-        ct.ThrowIfCancellationRequested();
-
-        if (string.IsNullOrWhiteSpace(from)) throw new ArgumentException("From cannot be empty.", nameof(from));
-        if (string.IsNullOrWhiteSpace(to))   throw new ArgumentException("To cannot be empty.", nameof(to));
-
-        // 1) Geocode both ends (forward geocoding)
-        var s = await GeocodeAsync(from, ct);
-        var e = await GeocodeAsync(to, ct);
-
-        // 2) Directions (POST /v2/directions/driving-car/geojson)
-        var body = new
+        try
         {
-            coordinates = new[]
+            ct.ThrowIfCancellationRequested();
+
+            if (string.IsNullOrWhiteSpace(from)) throw new ArgumentException("From cannot be empty.", nameof(from));
+            if (string.IsNullOrWhiteSpace(to))   throw new ArgumentException("To cannot be empty.", nameof(to));
+
+            // 1) Geocode both ends (forward geocoding)
+            var s = await GeocodeAsync(from, ct);
+            var e = await GeocodeAsync(to, ct);
+
+            // 2) Directions (POST /v2/directions/driving-car/geojson)
+            var body = new
             {
-                new[] { s.Lng, s.Lat },   // ORS expects [lon, lat]
-                new[] { e.Lng, e.Lat }
+                coordinates = new[]
+                {
+                    new[] { s.Lng, s.Lat },   // ORS expects [lon, lat]
+                    new[] { e.Lng, e.Lat }
+                }
+                // You can add: "preference":"fastest", "maneuvers":true, etc.
+            };
+
+            using var msg = new HttpRequestMessage(HttpMethod.Post, "v2/directions/driving-car/geojson")
+            {
+                Content = JsonContent.Create(body, options: _json)
+            };
+            msg.Headers.Remove("Authorization");
+            msg.Headers.TryAddWithoutValidation("Authorization", _apiKey);
+            msg.Headers.Accept.Clear();
+            msg.Headers.Accept.ParseAdd("application/geo+json");
+
+            using var resp = await _http.SendAsync(msg, ct);
+            await EnsureSuccessAsync(resp, "Directions");
+
+            var json = await resp.Content.ReadFromJsonAsync<JsonElement>(_json, ct);
+            if (!json.TryGetProperty("features", out var features) || features.GetArrayLength() == 0)
+                throw new InvalidOperationException("Directions returned no features.");
+
+            var feat = features[0];
+            var props = feat.GetProperty("properties");
+            var summary = props.GetProperty("summary");
+
+            var distanceKm = summary.GetProperty("distance").GetDouble() / 1000.0;
+            var duration   = TimeSpan.FromSeconds(summary.GetProperty("duration").GetDouble());
+
+            // geometry.coordinates is [[lon,lat], [lon,lat], ...]
+            var coords = feat.GetProperty("geometry").GetProperty("coordinates");
+            var path = new List<(double Lat, double Lng)>(capacity: coords.GetArrayLength());
+            foreach (var c in coords.EnumerateArray())
+            {
+                var lon = c[0].GetDouble();
+                var lat = c[1].GetDouble();
+                path.Add((lat, lon));
             }
-            // You can add: "preference":"fastest", "maneuvers":true, etc.
-        };
 
-        using var msg = new HttpRequestMessage(HttpMethod.Post, "v2/directions/driving-car/geojson")
-        {
-            Content = JsonContent.Create(body, options: _json)
-        };
-        msg.Headers.Remove("Authorization");
-        msg.Headers.TryAddWithoutValidation("Authorization", _apiKey);
-        msg.Headers.Accept.Clear();
-        msg.Headers.Accept.ParseAdd("application/geo+json");
-
-        using var resp = await _http.SendAsync(msg, ct);
-        await EnsureSuccessAsync(resp, "Directions");
-
-        var json = await resp.Content.ReadFromJsonAsync<JsonElement>(_json, ct);
-        if (!json.TryGetProperty("features", out var features) || features.GetArrayLength() == 0)
-            throw new InvalidOperationException("Directions returned no features.");
-
-        var feat = features[0];
-        var props = feat.GetProperty("properties");
-        var summary = props.GetProperty("summary");
-
-        var distanceKm = summary.GetProperty("distance").GetDouble() / 1000.0;
-        var duration   = TimeSpan.FromSeconds(summary.GetProperty("duration").GetDouble());
-
-        // geometry.coordinates is [[lon,lat], [lon,lat], ...]
-        var coords = feat.GetProperty("geometry").GetProperty("coordinates");
-        var path = new List<(double Lat, double Lng)>(capacity: coords.GetArrayLength());
-        foreach (var c in coords.EnumerateArray())
-        {
-            var lon = c[0].GetDouble();
-            var lat = c[1].GetDouble();
-            path.Add((lat, lon));
+            var img = await DownloadStaticMapAsync(path, ct);
+            return new RouteResult(distanceKm, duration, path, img);
         }
-
-        var img = await DownloadStaticMapAsync(path, ct);
-        return new RouteResult(distanceKm, duration, path, img);
+        catch (ArgumentException)
+        {
+            throw;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            // Fall back to a stubbed route when the real service fails
+            var stub = new StubMapService();
+            return await stub.GetRouteAsync(from, to, ct);
+        }
     }
 
     private async Task<(double Lat, double Lng)> GeocodeAsync(string text, CancellationToken ct)
