@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
+using System.Linq;
 using Microsoft.Extensions.Configuration;
 using TourPlanner.Infrastructure.Services;
 using Xunit;
@@ -35,6 +36,9 @@ public class MapServiceTests
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            Assert.True(request.Headers.TryGetValues("Authorization", out var auth));
+            Assert.Equal("test", auth.Single());
+
             string json;
             if (request.RequestUri!.AbsolutePath.Contains("geocode"))
             {
@@ -46,6 +50,8 @@ public class MapServiceTests
             }
             else
             {
+                Assert.EndsWith("/v2/directions/driving-car/geojson", request.RequestUri!.AbsolutePath);
+                Assert.Equal("application/geo+json", request.Headers.Accept.Single().MediaType);
                 json = "{\"features\":[{\"properties\":{\"summary\":{\"distance\":1000,\"duration\":600}},\"geometry\":{\"coordinates\":[[0,0],[1,1]]}}]}";
             }
 
