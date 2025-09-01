@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +26,10 @@ public static class DependencyInjection
             services.AddSingleton<ITourRepository, InMemoryTourRepository>();
         }
 
-        services.AddSingleton<IMapService, MapService>();
+        services.AddHttpClient<IMapService, MapService>(c =>
+        {
+            c.BaseAddress = new Uri("https://api.openrouteservice.org/");
+        });
 
         return services;
     }
