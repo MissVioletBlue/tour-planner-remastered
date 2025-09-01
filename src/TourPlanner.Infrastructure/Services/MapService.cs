@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -147,17 +148,28 @@ public sealed class MapService : IMapService
 
     private async Task<string> DownloadStaticMapAsync(IEnumerable<(double Lat, double Lng)> path, CancellationToken ct)
     {
-        // Build simple static map request using openstreetmap static service
-        var coords = path.Take(30).Select(p => $"{p.Lat},{p.Lng}");
-        var url = "https://staticmap.openstreetmap.de/staticmap.php?size=600x400&path=" + string.Join("|", coords);
-        using var req = new HttpRequestMessage(HttpMethod.Get, url);
-        req.Headers.Remove("Authorization");
-        req.Headers.TryAddWithoutValidation("Authorization", _apiKey);
-        using var resp = await _http.SendAsync(req, ct);
-        await EnsureSuccessAsync(resp, "Map image");
-        var file = Path.Combine(_imageDir, $"{Guid.NewGuid():N}.png");
-        await using var fs = File.Create(file);
-        await resp.Content.CopyToAsync(fs, ct);
-        return file;
+        try
+        {
+            // Build simple static map request using openstreetmap static service
+            var coords = path.Take(30).Select(p => $"{p.Lat},{p.Lng}");
+            var url = "https://staticmap.openstreetmap.de/staticmap.php?size=600x400&path=" + string.Join("|", coords);
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Remove("Authorization");
+            req.Headers.TryAddWithoutValidation("Authorization", _apiKey);
+            using var resp = await _http.SendAsync(req, ct);
+            await EnsureSuccessAsync(resp, "Map image");
+            var file = Path.Combine(_imageDir, $"{Guid.NewGuid():N}.png");
+            await using var fs = File.Create(file);
+            await resp.Content.CopyToAsync(fs, ct);
+            return file;
+        }
+        catch (Exception)
+        {
+            // If the static map service fails, fall back to a blank placeholder
+            var placeholder = Path.Combine(_imageDir, "stub.png");
+            if (!File.Exists(placeholder))
+                await File.WriteAllBytesAsync(placeholder, Array.Empty<byte>(), ct);
+            return placeholder;
+        }
     }
 }
