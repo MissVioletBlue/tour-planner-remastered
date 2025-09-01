@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TourPlanner.Domain.Entities;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Application.Contracts;
@@ -20,7 +23,12 @@ public sealed class InMemoryTourRepository : ITourRepository
         IEnumerable<Tour> q = _tours;
 
         if (!string.IsNullOrWhiteSpace(r.Text))
-            q = q.Where(t => t.Name.Contains(r.Text, StringComparison.OrdinalIgnoreCase));
+            q = q.Where(t =>
+                t.Name.Contains(r.Text, StringComparison.OrdinalIgnoreCase) ||
+                (t.Description?.Contains(r.Text, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                t.From.Contains(r.Text, StringComparison.OrdinalIgnoreCase) ||
+                t.To.Contains(r.Text, StringComparison.OrdinalIgnoreCase) ||
+                t.TransportType.Contains(r.Text, StringComparison.OrdinalIgnoreCase));
 
         q = (r.SortBy) switch
         {
@@ -64,7 +72,7 @@ public sealed class InMemoryTourRepository : ITourRepository
         ct.ThrowIfCancellationRequested();
         var list = _tours
             .OrderBy(t => t.Name)
-            .Select(t => new TourSummaryDto(t.Id, t.Name, t.DistanceKm, 0, null))
+            .Select(t => new TourSummaryDto(t.Id, t.Name, t.DistanceKm, 0, null, null))
             .ToList();
         return Task.FromResult((IReadOnlyList<TourSummaryDto>)list);
     }

@@ -33,6 +33,8 @@ public partial class App : WpfApplication
             services.AddSingleton<ITourLogService, TourLogService>();
 
             services.AddSingleton<MapViewModel>();
+            services.AddSingleton<TourListViewModel>();
+            services.AddSingleton<TourDetailViewModel>();
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<Views.MainWindow>(sp =>
                 new Views.MainWindow { DataContext = sp.GetRequiredService<MainViewModel>() });

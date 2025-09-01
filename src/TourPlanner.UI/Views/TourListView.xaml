@@ -26,10 +26,19 @@
         </ToolBar>
 
         <!-- List -->
-        <ListBox ItemsSource="{Binding ToursView}"
-                 SelectedItem="{Binding SelectedTour}"
-                 DisplayMemberPath="Name"
-                 Margin="0,8,0,0"
-                 IsSynchronizedWithCurrentItem="True" />
+        <DataGrid ItemsSource="{Binding ToursView}"
+                  SelectedItem="{Binding SelectedTour}"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  IsReadOnly="True"
+                  Margin="0,8,0,0">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*" />
+                <DataGridTextColumn Header="From" Binding="{Binding From}" Width="*" />
+                <DataGridTextColumn Header="To" Binding="{Binding To}" Width="*" />
+                <DataGridTextColumn Header="Distance (km)" Binding="{Binding DistanceKm, StringFormat={}{0:F1}}" Width="*" />
+                <DataGridTextColumn Header="Time" Binding="{Binding EstimatedTime, StringFormat={}{0:hh\\:mm}}" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
     </DockPanel>
 </UserControl>

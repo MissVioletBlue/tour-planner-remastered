@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using TourPlanner.Application.Contracts;
-using TourPlanner.Domain.Entities;
 using TourPlanner.Infrastructure.Persistence;
 using TourPlanner.Infrastructure.Repositories;
+using TourPlanner.Tests.Utils;
 using Xunit;
 
 namespace TourPlanner.Tests.Infrastructure;
@@ -27,8 +27,8 @@ public class TourRepositoryTests
         using var db = NewSqliteDb();
         var repo = new EfTourRepository(db);
 
-        await repo.CreateAsync(new(Guid.NewGuid(), "Alps Trail", null, 12.3));
-        await repo.CreateAsync(new(Guid.NewGuid(), "Bavarian Walk", null, 7.0));
+        await repo.CreateAsync(TestHelper.NewTour("Alps Trail", 12.3));
+        await repo.CreateAsync(TestHelper.NewTour("Bavarian Walk", 7.0));
 
         var all = await repo.GetAllAsync();
         Assert.Equal(2, all.Count);
@@ -42,7 +42,7 @@ public class TourRepositoryTests
         var repo = new EfTourRepository(db);
 
         for (int i = 1; i <= 25; i++)
-            await repo.CreateAsync(new(Guid.NewGuid(), $"Tour {i:D2}", null, i));
+            await repo.CreateAsync(TestHelper.NewTour($"Tour {i:D2}", i));
 
         var page1 = await repo.SearchAsync(new SearchRequest("Tour", null, null, null, "Name", false, 1, 10));
         var page3 = await repo.SearchAsync(new SearchRequest("Tour", null, null, null, "Name", false, 3, 10));
@@ -58,7 +58,7 @@ public class TourRepositoryTests
         using var db = NewSqliteDb();
         var repo = new EfTourRepository(db);
 
-        var t = await repo.CreateAsync(new(Guid.NewGuid(), "Old", null, 1));
+        var t = await repo.CreateAsync(TestHelper.NewTour("Old", 1));
         await repo.UpdateAsync(t with { Name = "New" });
 
         var all = await repo.GetAllAsync();

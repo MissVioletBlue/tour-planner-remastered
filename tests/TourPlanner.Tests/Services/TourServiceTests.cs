@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Infrastructure.Repositories;
+using TourPlanner.Infrastructure.Services;
 using Xunit;
 
 namespace TourPlanner.Tests.Services;
@@ -11,9 +12,11 @@ public class TourServiceTests
     public async Task Create_Adds_Tour()
     {
         ITourRepository repo = new InMemoryTourRepository();
-        var svc = new TourPlanner.Application.Services.TourService(repo, NullLogger<TourPlanner.Application.Services.TourService>.Instance);
+        ITourLogRepository logRepo = new InMemoryTourLogRepository();
+        IMapService map = new TourPlanner.Infrastructure.Services.StubMapService();
+        var svc = new TourPlanner.Application.Services.TourService(repo, logRepo, map, NullLogger<TourPlanner.Application.Services.TourService>.Instance);
 
-        var created = await svc.CreateAsync("Test Tour", null, 0);
+        var created = await svc.CreateAsync("Test Tour", null, "A", "B", "car");
         var all = await svc.GetAllAsync();
 
         Assert.Contains(all, t => t.Id == created.Id && t.Name == "Test Tour");

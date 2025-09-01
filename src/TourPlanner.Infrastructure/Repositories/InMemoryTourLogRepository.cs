@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Domain.Entities;
 
@@ -11,9 +14,8 @@ public sealed class InMemoryTourLogRepository : ITourLogRepository
     {
         ct.ThrowIfCancellationRequested();
         var list = _logs
-            .Where(x => x.TourId == tourId)
-            .OrderByDescending(x => x.Date)
-            .ThenByDescending(x => x.Rating)
+            .Where(l => l.TourId == tourId)
+            .OrderBy(l => l.Date)
             .ToList();
         return Task.FromResult((IReadOnlyList<TourLog>)list);
     }

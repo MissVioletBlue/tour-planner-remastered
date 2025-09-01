@@ -7,6 +7,7 @@
         mc:Ignorable="d"
         Title="{Binding Title}"
         Height="720" Width="1200"
+        MinHeight="800" MinWidth="900"
         WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
@@ -18,8 +19,8 @@
             <TabItem Header="Tours">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="420" />
-                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="2*" MinWidth="300" />
+                        <ColumnDefinition Width="3*" MinWidth="400" />
                     </Grid.ColumnDefinitions>
 
                     <local:TourListView Grid.Column="0" DataContext="{Binding TourList}" />

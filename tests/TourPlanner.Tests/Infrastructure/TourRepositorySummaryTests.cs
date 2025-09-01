@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TourPlanner.Domain.Entities;
 using TourPlanner.Infrastructure.Persistence;
 using TourPlanner.Infrastructure.Repositories;
+using TourPlanner.Tests.Utils;
 using Xunit;
 
 namespace TourPlanner.Tests.Infrastructure;
@@ -27,18 +28,18 @@ public class TourRepositorySummaryTests
         var repo = new EfTourRepository(db);
         var logRepo = new EfTourLogRepository(db);
 
-        var t1 = await repo.CreateAsync(new(Guid.NewGuid(), "Alps", null, 10));
-        var t2 = await repo.CreateAsync(new(Guid.NewGuid(), "Beach", null, 5));
-        await logRepo.CreateAsync(new(Guid.NewGuid(), t1.Id, DateTime.Today, "Nice", 4));
-        await logRepo.CreateAsync(new(Guid.NewGuid(), t1.Id, DateTime.Today, "Great", 2));
+        var t1 = await repo.CreateAsync(TestHelper.NewTour("Alps", 10));
+        var t2 = await repo.CreateAsync(TestHelper.NewTour("Beach", 5));
+        await logRepo.CreateAsync(TestHelper.NewLog(t1.Id, "Nice", 4));
+        await logRepo.CreateAsync(TestHelper.NewLog(t1.Id, "Great", 2));
 
         var sums = await repo.GetSummariesAsync();
         Assert.Equal(2, sums.Count);
         var s1 = sums.First(s => s.Id == t1.Id);
-        Assert.Equal(2, s1.LogsCount);
+        Assert.Equal(2, s1.Popularity);
         Assert.Equal(3, s1.AverageRating);
         var s2 = sums.First(s => s.Id == t2.Id);
-        Assert.Equal(0, s2.LogsCount);
+        Assert.Equal(0, s2.Popularity);
         Assert.Null(s2.AverageRating);
     }
 }

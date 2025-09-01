@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
 using TourPlanner.Application.Contracts;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Domain.Entities;
@@ -29,7 +31,12 @@ public sealed class EfTourRepository : ITourRepository
         if (!string.IsNullOrWhiteSpace(text))
         {
             var lower = text.ToLower();
-            q = q.Where(t => t.Name.ToLower().Contains(lower));
+            q = q.Where(t =>
+                t.Name.ToLower().Contains(lower) ||
+                (t.Description != null && t.Description.ToLower().Contains(lower)) ||
+                t.From.ToLower().Contains(lower) ||
+                t.To.ToLower().Contains(lower) ||
+                t.TransportType.ToLower().Contains(lower));
         }
 
         if (r.MinRating is int minR)
@@ -93,7 +100,8 @@ public sealed class EfTourRepository : ITourRepository
                 _db.TourLogs.Count(l => l.TourId == t.Id),
                 _db.TourLogs.Where(l => l.TourId == t.Id)
                     .Select(l => (double?)l.Rating)
-                    .Average()))
+                    .Average(),
+                null))
             .ToListAsync(ct);
     }
 }
