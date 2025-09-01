@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
+using System.Linq;
 using Microsoft.Extensions.Configuration;
 using TourPlanner.Infrastructure.Services;
 using Xunit;
@@ -50,6 +51,7 @@ public class MapServiceTests
             else
             {
                 Assert.EndsWith("/v2/directions/driving-car/geojson", request.RequestUri!.AbsolutePath);
+                Assert.Equal("application/geo+json", request.Headers.Accept.Single().MediaType);
                 json = "{\"features\":[{\"properties\":{\"summary\":{\"distance\":1000,\"duration\":600}},\"geometry\":{\"coordinates\":[[0,0],[1,1]]}}]}";
             }
 

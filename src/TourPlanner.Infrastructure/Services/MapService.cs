@@ -52,6 +52,8 @@ public sealed class MapService : IMapService
         };
         msg.Headers.Remove("Authorization");
         msg.Headers.TryAddWithoutValidation("Authorization", _apiKey);
+        msg.Headers.Accept.Clear();
+        msg.Headers.Accept.ParseAdd("application/geo+json");
 
         using var resp = await _http.SendAsync(msg, ct);
         await EnsureSuccessAsync(resp, "Directions");
