@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Diagnostics;
 using System.IO;
-using Serilog;
+using log4net;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Domain.Entities;
 using TourPlanner.UI.Commands;
@@ -18,6 +18,7 @@ public class TourDetailViewModel : INotifyPropertyChanged
     private readonly ITourService _tourService;
     private readonly ITourLogService _tourLogService;
     private readonly IReportService _reportService;
+    private static readonly ILog Log = LogManager.GetLogger(typeof(TourDetailViewModel));
     private Tour? _selectedTour;
     private TourLog? _selectedLog;
     private string? _name;
@@ -208,7 +209,7 @@ public class TourDetailViewModel : INotifyPropertyChanged
         catch (Exception ex)
         {
             Status?.Invoke($"Report failed: {ex.Message}");
-            Log.Error(ex, "Report generation failed");
+            Log.Error("Report generation failed", ex);
         }
     }
 
@@ -225,7 +226,7 @@ public class TourDetailViewModel : INotifyPropertyChanged
         var log = await _tourLogService.CreateAsync(SelectedTour.Id, DateTime.Today, "", 1, SelectedTour.DistanceKm, SelectedTour.EstimatedTime, 3);
         Logs.Add(log);
         SelectedLog = log;
-        Log.Information("Added log to tour {TourName}", SelectedTour.Name);
+        Log.Info($"Added log to tour {SelectedTour.Name}");
     }
 
     private async Task DeleteLogAsync()
@@ -259,7 +260,7 @@ public class TourDetailViewModel : INotifyPropertyChanged
         catch (Exception ex)
         {
             Status?.Invoke($"Save failed: {ex.Message}");
-            Log.Error(ex, "Failed to save tour");
+            Log.Error("Failed to save tour", ex);
         }
     }
 
@@ -286,7 +287,7 @@ public class TourDetailViewModel : INotifyPropertyChanged
         catch (Exception ex)
         {
             Status?.Invoke($"Log save failed: {ex.Message}");
-            Log.Error(ex, "Failed to save log");
+            Log.Error("Failed to save log", ex);
         }
     }
 

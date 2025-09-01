@@ -2,7 +2,8 @@ using System.Windows;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Serilog;
+using log4net;
+using log4net.Config;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Application.Services;
 using TourPlanner.UI.ViewModels;
@@ -15,15 +16,12 @@ namespace TourPlanner.UI;
 
 public partial class App : WpfApplication
 {
+    private static readonly ILog Log = LogManager.GetLogger(typeof(App));
+
     public static IHost AppHost { get; private set; } = Host.CreateDefaultBuilder()
         .ConfigureAppConfiguration(cfg =>
         {
             cfg.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-        })
-        .UseSerilog((ctx, log) =>
-        {
-            log.MinimumLevel.Information()
-               .WriteTo.File("logs/app-.log", rollingInterval: RollingInterval.Day);
         })
         .ConfigureServices((context, services) =>
         {
@@ -43,9 +41,11 @@ public partial class App : WpfApplication
 
     protected override async void OnStartup(StartupEventArgs e)
     {
+        XmlConfigurator.Configure(new System.IO.FileInfo("log4net.config"));
+
         this.DispatcherUnhandledException += (s, args) =>
         {
-            Log.Error(args.Exception, "Unhandled UI exception");
+            Log.Error("Unhandled UI exception", args.Exception);
             MessageBox.Show(args.Exception.Message, "Unexpected error", MessageBoxButton.OK, MessageBoxImage.Error);
             args.Handled = true;
         };
