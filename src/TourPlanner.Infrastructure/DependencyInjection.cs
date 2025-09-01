@@ -24,6 +24,7 @@ public static class DependencyInjection
         else
         {
             services.AddSingleton<ITourRepository, InMemoryTourRepository>();
+            services.AddSingleton<ITourLogRepository, InMemoryTourLogRepository>();
         }
 
         var apiKey = cfg["OpenRouteService:ApiKey"];
