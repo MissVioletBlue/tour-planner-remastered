@@ -57,15 +57,18 @@ public partial class App : WpfApplication
 
         using (var scope = AppHost.Services.CreateScope())
         {
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            try
+            var db = scope.ServiceProvider.GetService<AppDbContext>();
+            if (db != null)
             {
-                await db.Database.MigrateAsync();
-            }
-            catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.DuplicateTable)
-            {
-                Log.Warn("Database already initialized, skipping migrations", ex);
-                await db.Database.EnsureCreatedAsync();
+                try
+                {
+                    await db.Database.MigrateAsync();
+                }
+                catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.DuplicateTable)
+                {
+                    Log.Warn("Database already initialized, skipping migrations", ex);
+                    await db.Database.EnsureCreatedAsync();
+                }
             }
         }
 

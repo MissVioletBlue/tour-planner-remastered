@@ -45,8 +45,15 @@ public sealed class ExportService : IExportService
             sbGpx.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
             sbGpx.AppendLine("<gpx version=\"1.1\" creator=\"TourPlanner\">");
             sbGpx.AppendLine($"  <trk><name>{Escape(t.Name)}</name><trkseg>");
-            foreach (var p in t.Route)
-                sbGpx.AppendLine($"    <trkpt lat=\"{p.Lat}\" lon=\"{p.Lng}\" />");
+            if (t.Route.Count == 0)
+            {
+                sbGpx.AppendLine("    <trkpt lat=\"0\" lon=\"0\" />");
+            }
+            else
+            {
+                foreach (var p in t.Route)
+                    sbGpx.AppendLine($"    <trkpt lat=\"{p.Lat}\" lon=\"{p.Lng}\" />");
+            }
             sbGpx.AppendLine("  </trkseg></trk></gpx>");
             return Encoding.UTF8.GetBytes(sbGpx.ToString());
         }
