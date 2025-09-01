@@ -12,5 +12,6 @@ obj/
 Thumbs.db
 # Logs
 *.log
+logs/
 # Publish
 publish/

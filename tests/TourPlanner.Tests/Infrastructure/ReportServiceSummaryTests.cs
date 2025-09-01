@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using TourPlanner.Infrastructure.Persistence;
+using TourPlanner.Infrastructure.Repositories;
 using TourPlanner.Infrastructure.Services;
 using TourPlanner.Tests.Utils;
 using Xunit;

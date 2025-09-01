@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using TourPlanner.Application.Contracts;
+using TourPlanner.Application.Interfaces;
 using TourPlanner.Infrastructure.Repositories;
 using TourPlanner.Infrastructure.Services;
 using TourPlanner.Tests.Utils;

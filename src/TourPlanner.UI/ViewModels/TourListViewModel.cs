@@ -9,7 +9,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Diagnostics;
 using System.IO;
-using Serilog;
+using log4net;
 using TourPlanner.Application.Contracts;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Domain.Entities;
@@ -22,6 +22,7 @@ public class TourListViewModel : INotifyPropertyChanged
     private readonly ITourService _tourService;
     private readonly IReportService _reportService;
     private readonly Dictionary<Guid, TourSummaryDto> _stats = new();
+    private static readonly ILog Log = LogManager.GetLogger(typeof(TourListViewModel));
     private string _searchText = "";
     private Tour? _selectedTour;
     private bool _isBusy;
@@ -86,7 +87,7 @@ public class TourListViewModel : INotifyPropertyChanged
         catch (Exception ex)
         {
             Status?.Invoke($"Summary report failed: {ex.Message}");
-            Log.Error(ex, "Summary report failed");
+            Log.Error("Summary report failed", ex);
         }
         finally { IsBusy = false; }
     }
@@ -140,12 +141,12 @@ public class TourListViewModel : INotifyPropertyChanged
             _stats[tour.Id] = new TourSummaryDto(tour.Id, tour.Name, tour.DistanceKm, 0, null, null);
             SelectedTour = tour;
             Status?.Invoke($"Added: {tour.Name}");
-            Log.Information("Added tour {TourName}", tour.Name);
+            Log.Info($"Added tour {tour.Name}");
         }
         catch (Exception ex)
         {
             Status?.Invoke($"Add failed: {ex.Message}");
-            Log.Error(ex, "Failed to add tour");
+            Log.Error("Failed to add tour", ex);
         }
         finally { IsBusy = false; }
     }
@@ -162,7 +163,7 @@ public class TourListViewModel : INotifyPropertyChanged
             Tours.Remove(SelectedTour);
             SelectedTour = null;
             Status?.Invoke($"Deleted: {name}");
-            Log.Information("Deleted tour {TourName}", name);
+            Log.Info($"Deleted tour {name}");
         }
         finally { IsBusy = false; }
     }
