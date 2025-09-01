@@ -26,10 +26,18 @@ public static class DependencyInjection
             services.AddSingleton<ITourRepository, InMemoryTourRepository>();
         }
 
-        services.AddHttpClient<IMapService, MapService>(c =>
+        var apiKey = cfg["OpenRouteService:ApiKey"];
+        if (string.IsNullOrWhiteSpace(apiKey))
         {
-            c.BaseAddress = new Uri("https://api.openrouteservice.org/");
-        });
+            services.AddSingleton<IMapService, StubMapService>();
+        }
+        else
+        {
+            services.AddHttpClient<IMapService, MapService>(c =>
+            {
+                c.BaseAddress = new Uri("https://api.openrouteservice.org/");
+            });
+        }
 
         return services;
     }
