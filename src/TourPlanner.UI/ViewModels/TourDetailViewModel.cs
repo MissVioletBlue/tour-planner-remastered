@@ -23,6 +23,8 @@ public class TourDetailViewModel : INotifyPropertyChanged
     private DateTime _logDate = DateTime.Today;
     private int _logRating = 3;
     private string? _logNotes;
+    private bool _suppressTourSave;
+    private bool _suppressLogSave;
 
     public ObservableCollection<TourLog> Logs { get; } = new();
 
@@ -33,6 +35,7 @@ public class TourDetailViewModel : INotifyPropertyChanged
         {
             _selectedTour = value;
             OnPropertyChanged();
+            _suppressTourSave = true;
             if (value is not null)
             {
                 Name = value.Name;
@@ -47,6 +50,7 @@ public class TourDetailViewModel : INotifyPropertyChanged
                 DistanceKm = 0;
                 Logs.Clear();
             }
+            _suppressTourSave = false;
             CommandManager.InvalidateRequerySuggested();
         }
     }
@@ -76,12 +80,14 @@ public class TourDetailViewModel : INotifyPropertyChanged
         {
             _selectedLog = value;
             OnPropertyChanged();
+            _suppressLogSave = true;
             if (value is not null)
             {
                 LogDate = value.Date;
                 LogRating = value.Rating;
                 LogNotes = value.Notes;
             }
+            _suppressLogSave = false;
             CommandManager.InvalidateRequerySuggested();
         }
     }
@@ -143,21 +149,23 @@ public class TourDetailViewModel : INotifyPropertyChanged
 
     private async Task SaveTourAsync()
     {
-        if (SelectedTour is null) return;
-        var updated = SelectedTour with { Name = Name ?? "", Description = Description, DistanceKm = DistanceKm };
+        if (_suppressTourSave || _selectedTour is null) return;
+        var updated = _selectedTour with { Name = Name ?? "", Description = Description, DistanceKm = DistanceKm };
         await _tourService.UpdateAsync(updated);
-        SelectedTour = updated;
+        _selectedTour = updated;
+        OnPropertyChanged(nameof(SelectedTour));
         TourUpdated?.Invoke(updated);
     }
 
     private async Task SaveLogAsync()
     {
-        if (SelectedLog is null) return;
-        var updated = SelectedLog with { Date = LogDate, Notes = LogNotes, Rating = LogRating };
+        if (_suppressLogSave || _selectedLog is null) return;
+        var updated = _selectedLog with { Date = LogDate, Notes = LogNotes, Rating = LogRating };
         await _tourLogService.UpdateAsync(updated);
-        var idx = Logs.IndexOf(SelectedLog);
+        var idx = Logs.IndexOf(_selectedLog);
         if (idx >= 0) Logs[idx] = updated;
-        SelectedLog = updated;
+        _selectedLog = updated;
+        OnPropertyChanged(nameof(SelectedLog));
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
