@@ -103,6 +103,14 @@
                           CanUserAddRows="False"
                           IsReadOnly="True">
                     <DataGrid.Columns>
+                        <DataGridTextColumn Header="Votes" Binding="{Binding Votes}" Width="Auto" />
+                        <DataGridTemplateColumn Header="Upvote" Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="▲" Command="{Binding DataContext.UpvoteLogCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=\{0:yyyy-MM-dd\}}" Width="*" />
                         <DataGridTextColumn Header="Difficulty" Binding="{Binding Difficulty}" Width="*" />
                         <DataGridTextColumn Header="Distance" Binding="{Binding TotalDistance, StringFormat={}{0:F1}}" Width="*" />

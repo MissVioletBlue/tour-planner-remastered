@@ -10,6 +10,6 @@ public static class TestHelper
         => new(Guid.NewGuid(), name, null, "A", "B", "car", distance, TimeSpan.Zero,
             new List<(double,double)>(), string.Empty);
 
-    public static TourLog NewLog(Guid tourId, string comment, int rating)
-        => new(Guid.NewGuid(), tourId, DateTime.Today, comment, 1, 0, TimeSpan.Zero, rating);
+    public static TourLog NewLog(Guid tourId, string comment, int rating, int votes = 0)
+        => new(Guid.NewGuid(), tourId, DateTime.Today, comment, 1, 0, TimeSpan.Zero, rating, votes);
 }

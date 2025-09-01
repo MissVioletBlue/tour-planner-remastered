@@ -15,7 +15,8 @@ public sealed class InMemoryTourLogRepository : ITourLogRepository
         ct.ThrowIfCancellationRequested();
         var list = _logs
             .Where(l => l.TourId == tourId)
-            .OrderBy(l => l.Date)
+            .OrderByDescending(l => l.Votes)
+            .ThenByDescending(l => l.Date)
             .ToList();
         return Task.FromResult((IReadOnlyList<TourLog>)list);
     }
