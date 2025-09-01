@@ -62,7 +62,7 @@ public sealed class TourService : ITourService
         if (string.IsNullOrWhiteSpace(to)) throw new ValidationFailedException("To required");
         if (string.IsNullOrWhiteSpace(transportType)) throw new ValidationFailedException("Transport type required");
         var route = await _mapService.GetRouteAsync(from, to, ct);
-        var tour = new Tour(Guid.NewGuid(), name.Trim(), description?.Trim(), from.Trim(), to.Trim(), transportType.Trim(), route.DistanceKm, route.EstimatedTime, route.Path, route.ImagePath);
+        var tour = new Tour(Guid.NewGuid(), name.Trim(), description?.Trim(), from.Trim(), to.Trim(), transportType.Trim(), route.DistanceKm, route.EstimatedTime, route.Path.ToList(), route.ImagePath);
         _log.LogInformation("Creating tour {Name}", tour.Name);
         return await _repo.CreateAsync(tour, ct);
     }
@@ -82,7 +82,7 @@ public sealed class TourService : ITourService
             TransportType = tour.TransportType.Trim(),
             DistanceKm = route.DistanceKm,
             EstimatedTime = route.EstimatedTime,
-            Route = route.Path,
+            Route = route.Path.ToList(),
             RouteImagePath = route.ImagePath
         };
         _log.LogInformation("Updating tour {Id}", tour.Id);

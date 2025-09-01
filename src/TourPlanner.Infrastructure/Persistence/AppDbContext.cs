@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.Collections.Generic;
 using TourPlanner.Domain.Entities;
 
 namespace TourPlanner.Infrastructure.Persistence;
@@ -18,6 +20,11 @@ public sealed class AppDbContext : DbContext
             e.Property(x => x.Name).IsRequired().HasMaxLength(200);
             e.Property(x => x.DistanceKm).HasPrecision(9, 2);
             e.Property(x => x.RouteImagePath).HasMaxLength(500);
+            e.Property(x => x.Route)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<(double Lat, double Lng)>>(v) ?? new())
+                .HasColumnType("jsonb");
             e.HasIndex(x => x.Name);
             e.HasIndex(x => x.DistanceKm);
         });

@@ -75,7 +75,7 @@ public sealed class ExportService : IExportService
                     dto.TransportType,
                     dto.DistanceKm,
                     dto.EstimatedTime,
-                    dto.Route ?? new List<(double,double)>(),
+                    dto.Route?.ToList() ?? new List<(double,double)>(),
                     dto.RouteImagePath ?? string.Empty
                 ));
                 foreach (var l in dto.Logs)
