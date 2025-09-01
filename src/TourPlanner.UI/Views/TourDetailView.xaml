@@ -93,34 +93,38 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,0">
-                    <StackPanel Orientation="Vertical" Margin="0,0,8,0">
-                        <TextBlock Text="Date"/>
-                        <DatePicker SelectedDate="{Binding LogDate, UpdateSourceTrigger=PropertyChanged}"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Vertical" Margin="0,0,8,0">
-                        <TextBlock Text="Difficulty"/>
-                        <TextBox Width="40" Text="{Binding LogDifficulty, UpdateSourceTrigger=PropertyChanged}"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Vertical" Margin="0,0,8,0">
-                        <TextBlock Text="Distance"/>
-                        <TextBox Width="60" Text="{Binding LogDistance, UpdateSourceTrigger=PropertyChanged}"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Vertical" Margin="0,0,8,0">
-                        <TextBlock Text="Time"/>
-                        <TextBox Width="80" Text="{Binding LogTime, UpdateSourceTrigger=PropertyChanged}"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Vertical" Margin="0,0,8,0">
-                        <TextBlock Text="Rating"/>
-                        <TextBox Width="40" Text="{Binding LogRating, UpdateSourceTrigger=PropertyChanged}"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Vertical" Width="200">
-                        <TextBlock Text="Comment"/>
-                        <TextBox Text="{Binding LogComment, UpdateSourceTrigger=PropertyChanged}"/>
-                    </StackPanel>
-                </StackPanel>
+                <Grid Grid.Row="2" Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="2*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <!-- Headers -->
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Date" Margin="0,0,4,2" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Difficulty" Margin="0,0,4,2" />
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Distance" Margin="0,0,4,2" />
+                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Time" Margin="0,0,4,2" />
+                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Rating" Margin="0,0,4,2" />
+                    <TextBlock Grid.Row="0" Grid.Column="5" Text="Comment" Margin="0,0,0,2" />
+
+                    <!-- Inputs -->
+                    <DatePicker Grid.Row="1" Grid.Column="0" SelectedDate="{Binding LogDate, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Row="1" Grid.Column="1" Width="40" Text="{Binding LogDifficulty, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Row="1" Grid.Column="2" Width="60" Text="{Binding LogDistance, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Row="1" Grid.Column="3" Width="80" Text="{Binding LogTime, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Row="1" Grid.Column="4" Width="40" Text="{Binding LogRating, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Row="1" Grid.Column="5" Text="{Binding LogComment, UpdateSourceTrigger=PropertyChanged}" />
+                </Grid>
+
+                <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,4,0,0">
                     <Button Content="Add Log" Command="{Binding AddLogCommand}" Margin="0,0,8,0"/>
                     <Button Content="Delete Log" Command="{Binding DeleteLogCommand}" />
                 </StackPanel>
