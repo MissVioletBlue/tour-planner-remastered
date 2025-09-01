@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Configuration;
 using TourPlanner.UI.Models;
 
 namespace TourPlanner.UI.ViewModels
@@ -16,12 +17,17 @@ namespace TourPlanner.UI.ViewModels
             get => _statusMessage;
             set { _statusMessage = value; OnPropertyChanged(); }
         }
+        public string DataMode { get; }
 
         public TourListViewModel TourList { get; }
         public TourDetailViewModel TourDetail { get; }
+        public MapViewModel MapVm { get; }
 
-        public MainViewModel()
+        public MainViewModel(MapViewModel mapVm, IConfiguration cfg)
         {
+            MapVm = mapVm;
+            DataMode = cfg.GetValue("Data:UseEf", false) ? "DB: EF/Postgres" : "DB: InMemory";
+
             var tours = new ObservableCollection<Tour>
             {
                 new Tour { Name = "Vienna City Walk", From = "Stephansplatz", To = "Belvedere", DistanceKm = 4.2 },
