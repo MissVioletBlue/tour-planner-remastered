@@ -4,6 +4,7 @@ using TourPlanner.Infrastructure.Services;
 using TourPlanner.Tests.Utils;
 using Xunit;
 using System.IO;
+using TourPlanner.Application.Interfaces;
 
 namespace TourPlanner.Tests.Infrastructure;
 
