@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Npgsql;
 using log4net;
 using log4net.Config;
 using TourPlanner.Application.Interfaces;
@@ -57,7 +58,15 @@ public partial class App : WpfApplication
         using (var scope = AppHost.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            await db.Database.MigrateAsync();
+            try
+            {
+                await db.Database.MigrateAsync();
+            }
+            catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.DuplicateTable)
+            {
+                Log.Warn("Database already initialized, skipping migrations", ex);
+                await db.Database.EnsureCreatedAsync();
+            }
         }
 
         AppHost.Services.GetRequiredService<Views.MainWindow>().Show();
