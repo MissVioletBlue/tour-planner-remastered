@@ -58,11 +58,11 @@
 
                 <TextBlock Grid.Row="10" Grid.Column="0" VerticalAlignment="Center" Text="Distance (km):"/>
                 <TextBlock Grid.Row="10" Grid.Column="1"
-                           Text="{Binding DistanceKm, StringFormat=F1}" />
+                           Text="{Binding DistanceKm, StringFormat={}{0:F1}}" />
 
                 <TextBlock Grid.Row="12" Grid.Column="0" VerticalAlignment="Center" Text="Estimated Time:"/>
                 <TextBlock Grid.Row="12" Grid.Column="1"
-                           Text="{Binding EstimatedTime}" />
+                           Text="{Binding EstimatedTime, StringFormat={}{0:hh\\:mm\\:ss}}" />
             </Grid>
         </GroupBox>
 
@@ -86,8 +86,8 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=\{0:yyyy-MM-dd\}}" Width="*" />
                         <DataGridTextColumn Header="Difficulty" Binding="{Binding Difficulty}" Width="*" />
-                        <DataGridTextColumn Header="Distance" Binding="{Binding TotalDistance}" Width="*" />
-                        <DataGridTextColumn Header="Time" Binding="{Binding TotalTime}" Width="*" />
+                        <DataGridTextColumn Header="Distance" Binding="{Binding TotalDistance, StringFormat={}{0:F1}}" Width="*" />
+                        <DataGridTextColumn Header="Time" Binding="{Binding TotalTime, StringFormat={}{0:hh\\:mm\\:ss}}" Width="*" />
                         <DataGridTextColumn Header="Rating" Binding="{Binding Rating}" Width="*" />
                         <DataGridTextColumn Header="Comment" Binding="{Binding Comment}" Width="2*" />
                     </DataGrid.Columns>
