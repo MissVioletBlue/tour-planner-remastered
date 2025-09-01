@@ -1,4 +1,5 @@
 using System.Windows;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -8,6 +9,7 @@ using TourPlanner.Application.Interfaces;
 using TourPlanner.Application.Services;
 using TourPlanner.UI.ViewModels;
 using TourPlanner.Infrastructure;
+using TourPlanner.Infrastructure.Persistence;
 
 // Alias, damit "Application" eindeutig der WPF-Typ ist
 using WpfApplication = System.Windows.Application;
@@ -51,6 +53,13 @@ public partial class App : WpfApplication
         };
 
         await AppHost.StartAsync();
+
+        using (var scope = AppHost.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await db.Database.MigrateAsync();
+        }
+
         AppHost.Services.GetRequiredService<Views.MainWindow>().Show();
         base.OnStartup(e);
     }
