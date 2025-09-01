@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -11,10 +10,8 @@ using TourPlanner.Application.Interfaces;
 namespace TourPlanner.Infrastructure.Services;
 
 /// <summary>
-/// Maps addresses using the OpenRouteService HTTP API. If an API key is not
-/// configured the service falls back to returning a straight line between the
-/// supplied points which are interpreted as comma separated coordinates
-/// ("lat,lng").
+/// Maps addresses using the OpenRouteService HTTP API. An API key must be
+/// configured; otherwise a route cannot be resolved.
 /// </summary>
 public sealed class MapService : IMapService
 {
@@ -32,13 +29,7 @@ public sealed class MapService : IMapService
         ct.ThrowIfCancellationRequested();
 
         if (string.IsNullOrWhiteSpace(_apiKey))
-        {
-            var start = ParseCoordinate(from);
-            var end = ParseCoordinate(to);
-            var path = new List<(double Lat, double Lng)> { start, end };
-            var distanceKm = Haversine(start, end);
-            return new RouteResult(distanceKm, TimeSpan.Zero, path);
-        }
+            throw new InvalidOperationException("OpenRouteService API key is not configured.");
 
         var s = await GeocodeAsync(from, ct);
         var e = await GeocodeAsync(to, ct);
@@ -82,25 +73,5 @@ public sealed class MapService : IMapService
         var coords = json.GetProperty("features")[0].GetProperty("geometry").GetProperty("coordinates");
         return (coords[1].GetDouble(), coords[0].GetDouble());
     }
-
-    private static (double Lat, double Lng) ParseCoordinate(string value)
-    {
-        var parts = value.Split(',', StringSplitOptions.TrimEntries);
-        if (parts.Length != 2) throw new ArgumentException("Coordinate format is 'lat,lng'", nameof(value));
-        return (double.Parse(parts[0], CultureInfo.InvariantCulture), double.Parse(parts[1], CultureInfo.InvariantCulture));
-    }
-
-    private static double Haversine((double Lat, double Lng) a, (double Lat, double Lng) b)
-    {
-        const double R = 6371; // earth radius km
-        double dLat = Deg2Rad(b.Lat - a.Lat);
-        double dLng = Deg2Rad(b.Lng - a.Lng);
-        double sinLat = Math.Sin(dLat / 2);
-        double sinLng = Math.Sin(dLng / 2);
-        double h = sinLat * sinLat + Math.Cos(Deg2Rad(a.Lat)) * Math.Cos(Deg2Rad(b.Lat)) * sinLng * sinLng;
-        return 2 * R * Math.Asin(Math.Sqrt(h));
-    }
-
-    private static double Deg2Rad(double d) => d * Math.PI / 180.0;
 }
 
