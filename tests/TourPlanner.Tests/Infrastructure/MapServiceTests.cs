@@ -49,6 +49,7 @@ public class MapServiceTests
             }
             else
             {
+                Assert.EndsWith("/v2/directions/driving-car/geojson", request.RequestUri!.AbsolutePath);
                 json = "{\"features\":[{\"properties\":{\"summary\":{\"distance\":1000,\"duration\":600}},\"geometry\":{\"coordinates\":[[0,0],[1,1]]}}]}";
             }
 

@@ -35,7 +35,7 @@ public sealed class MapService : IMapService
         var s = await GeocodeAsync(from, ct);
         var e = await GeocodeAsync(to, ct);
 
-        // 2) Directions (POST /v2/directions/driving-car)
+        // 2) Directions (POST /v2/directions/driving-car/geojson)
         var body = new
         {
             coordinates = new[]
@@ -46,7 +46,7 @@ public sealed class MapService : IMapService
             // You can add: "preference":"fastest", "maneuvers":true, etc.
         };
 
-        using var msg = new HttpRequestMessage(HttpMethod.Post, "v2/directions/driving-car")
+        using var msg = new HttpRequestMessage(HttpMethod.Post, "v2/directions/driving-car/geojson")
         {
             Content = JsonContent.Create(body, options: _json)
         };
