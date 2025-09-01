@@ -36,6 +36,9 @@ public static class DependencyInjection
             services.AddHttpClient<IMapService, MapService>(c =>
             {
                 c.BaseAddress = new Uri("https://api.openrouteservice.org/");
+                c.Timeout = TimeSpan.FromSeconds(20);
+                c.DefaultRequestHeaders.Accept.Clear();
+                c.DefaultRequestHeaders.Accept.ParseAdd("application/json");
             });
         }
 

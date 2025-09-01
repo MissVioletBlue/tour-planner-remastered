@@ -35,6 +35,9 @@ public class MapServiceTests
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            Assert.True(request.Headers.TryGetValues("Authorization", out var auth));
+            Assert.Equal("test", auth.Single());
+
             string json;
             if (request.RequestUri!.AbsolutePath.Contains("geocode"))
             {
