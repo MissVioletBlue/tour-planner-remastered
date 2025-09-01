@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using TourPlanner.Domain.Entities;
 
 namespace TourPlanner.Infrastructure.Persistence;
@@ -26,11 +29,17 @@ public sealed class AppDbContext : DbContext
             e.Property(x => x.Name).IsRequired().HasMaxLength(200);
             e.Property(x => x.DistanceKm).HasPrecision(9, 2);
             e.Property(x => x.RouteImagePath).HasMaxLength(500);
+            var comparer = new ValueComparer<List<(double Lat, double Lng)>>(
+                (l1, l2) => l1.SequenceEqual(l2),
+                l => l.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                l => l.ToList());
+
             e.Property(x => x.Route)
                 .HasConversion(
                     v => SerializeRoute(v),
                     v => DeserializeRoute(v))
-                .HasColumnType("jsonb");
+                .HasColumnType("jsonb")
+                .Metadata.SetValueComparer(comparer);
             e.HasIndex(x => x.Name);
             e.HasIndex(x => x.DistanceKm);
         });
@@ -39,6 +48,7 @@ public sealed class AppDbContext : DbContext
         {
             e.HasKey(x => x.Id);
             e.Property(x => x.Rating).IsRequired();
+            e.Property(x => x.TotalDistance).HasPrecision(9, 2);
             e.HasIndex(x => new { x.TourId, x.Date });
             e.HasIndex(x => new { x.TourId, x.Rating });
         });

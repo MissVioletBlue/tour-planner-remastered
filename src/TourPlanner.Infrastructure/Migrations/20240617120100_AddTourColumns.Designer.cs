@@ -2,6 +2,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TourPlanner.Infrastructure.Persistence;
 
@@ -10,9 +11,10 @@ using TourPlanner.Infrastructure.Persistence;
 namespace TourPlanner.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240617120100_AddTourColumns")]
+    partial class AddTourColumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.7")
@@ -72,24 +74,14 @@ namespace TourPlanner.Infrastructure.Migrations
                 b.Property<Guid>("Id")
                     .HasColumnType("uuid");
 
-                b.Property<string>("Comment")
-                    .HasColumnType("text");
-
                 b.Property<DateTime>("Date")
                     .HasColumnType("timestamp with time zone");
 
-                b.Property<int>("Difficulty")
-                    .HasColumnType("integer");
+                b.Property<string>("Notes")
+                    .HasColumnType("text");
 
                 b.Property<int>("Rating")
                     .HasColumnType("integer");
-
-                b.Property<double>("TotalDistance")
-                    .HasPrecision(9, 2)
-                    .HasColumnType("numeric(9,2)");
-
-                b.Property<TimeSpan>("TotalTime")
-                    .HasColumnType("interval");
 
                 b.Property<Guid>("TourId")
                     .HasColumnType("uuid");

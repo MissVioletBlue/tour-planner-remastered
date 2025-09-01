@@ -24,7 +24,13 @@ public sealed class TourLogService : ITourLogService
         if (difficulty is < 1 or > 5) throw new ValidationFailedException("Difficulty must be between 1 and 5");
         if (totalDistance < 0) throw new ValidationFailedException("Distance must be non-negative");
         if (totalTime < TimeSpan.Zero) throw new ValidationFailedException("Time must be non-negative");
-        var log = new TourLog(Guid.NewGuid(), tourId, date, comment?.Trim(), difficulty, totalDistance, totalTime, rating);
+        var utcDate = date.Kind switch
+        {
+            DateTimeKind.Unspecified => DateTime.SpecifyKind(date, DateTimeKind.Utc),
+            DateTimeKind.Local => date.ToUniversalTime(),
+            _ => date
+        };
+        var log = new TourLog(Guid.NewGuid(), tourId, utcDate, comment?.Trim(), difficulty, totalDistance, totalTime, rating);
         _log.LogInformation("Creating log for tour {TourId}", tourId);
         return await _repo.CreateAsync(log, ct);
     }
@@ -36,7 +42,13 @@ public sealed class TourLogService : ITourLogService
         if (log.TotalDistance < 0) throw new ValidationFailedException("Distance must be non-negative");
         if (log.TotalTime < TimeSpan.Zero) throw new ValidationFailedException("Time must be non-negative");
         _log.LogInformation("Updating log {Id}", log.Id);
-        await _repo.UpdateAsync(log with { Comment = log.Comment?.Trim() }, ct);
+        var utcDate = log.Date.Kind switch
+        {
+            DateTimeKind.Unspecified => DateTime.SpecifyKind(log.Date, DateTimeKind.Utc),
+            DateTimeKind.Local => log.Date.ToUniversalTime(),
+            _ => log.Date
+        };
+        await _repo.UpdateAsync(log with { Comment = log.Comment?.Trim(), Date = utcDate }, ct);
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken ct = default)

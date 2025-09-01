@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Diagnostics;
 using System.IO;
 using log4net;
+using TourPlanner.Application.Common.Exceptions;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Domain.Entities;
 using TourPlanner.UI.Commands;
@@ -283,6 +284,10 @@ public class TourDetailViewModel : INotifyPropertyChanged
             if (idx >= 0) Logs[idx] = updated;
             _selectedLog = updated;
             OnPropertyChanged(nameof(SelectedLog));
+        }
+        catch (NotFoundException)
+        {
+            // Log was deleted concurrently; ignore.
         }
         catch (Exception ex)
         {

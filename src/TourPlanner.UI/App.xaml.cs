@@ -1,13 +1,16 @@
 using System.Windows;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Npgsql;
 using log4net;
 using log4net.Config;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Application.Services;
 using TourPlanner.UI.ViewModels;
 using TourPlanner.Infrastructure;
+using TourPlanner.Infrastructure.Persistence;
 
 // Alias, damit "Application" eindeutig der WPF-Typ ist
 using WpfApplication = System.Windows.Application;
@@ -51,6 +54,21 @@ public partial class App : WpfApplication
         };
 
         await AppHost.StartAsync();
+
+        using (var scope = AppHost.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            try
+            {
+                await db.Database.MigrateAsync();
+            }
+            catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.DuplicateTable)
+            {
+                Log.Warn("Database already initialized, skipping migrations", ex);
+                await db.Database.EnsureCreatedAsync();
+            }
+        }
+
         AppHost.Services.GetRequiredService<Views.MainWindow>().Show();
         base.OnStartup(e);
     }

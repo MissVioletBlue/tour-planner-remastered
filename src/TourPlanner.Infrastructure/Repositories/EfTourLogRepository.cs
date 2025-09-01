@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TourPlanner.Application.Common.Exceptions;
 using TourPlanner.Application.Interfaces;
 using TourPlanner.Domain.Entities;
 using TourPlanner.Infrastructure.Persistence;
@@ -33,7 +34,14 @@ public sealed class EfTourLogRepository : ITourLogRepository
     {
         ct.ThrowIfCancellationRequested();
         _db.TourLogs.Update(log);
-        await _db.SaveChangesAsync(ct);
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new NotFoundException(nameof(TourLog), log.Id);
+        }
     }
 
     public async Task<int> DeleteAsync(Guid id, CancellationToken ct = default)
