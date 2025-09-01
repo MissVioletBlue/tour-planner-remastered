@@ -12,5 +12,6 @@ public record Tour(
     string TransportType,
     double DistanceKm,
     TimeSpan EstimatedTime,
-    IReadOnlyList<(double Lat, double Lng)> Route
+    IReadOnlyList<(double Lat, double Lng)> Route,
+    string RouteImagePath
 );

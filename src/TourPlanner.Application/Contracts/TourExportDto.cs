@@ -14,4 +14,5 @@ public sealed record TourExportDto(
     double DistanceKm,
     TimeSpan EstimatedTime,
     IReadOnlyList<(double Lat, double Lng)> Route,
+    string RouteImagePath,
     IReadOnlyList<TourLog> Logs);

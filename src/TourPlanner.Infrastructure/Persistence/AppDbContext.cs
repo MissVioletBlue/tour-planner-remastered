@@ -17,6 +17,7 @@ public sealed class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             e.Property(x => x.Name).IsRequired().HasMaxLength(200);
             e.Property(x => x.DistanceKm).HasPrecision(9, 2);
+            e.Property(x => x.RouteImagePath).HasMaxLength(500);
             e.HasIndex(x => x.Name);
             e.HasIndex(x => x.DistanceKm);
         });

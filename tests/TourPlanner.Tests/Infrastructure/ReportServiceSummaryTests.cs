@@ -7,7 +7,7 @@ using Xunit;
 
 namespace TourPlanner.Tests.Infrastructure;
 
-public class ReportServiceTests
+public class ReportServiceSummaryTests
 {
     private static AppDbContext NewDb()
     {
@@ -21,17 +21,15 @@ public class ReportServiceTests
     }
 
     [Fact]
-    public async Task Report_Returns_Valid_Pdf()
+    public async Task Summary_Report_Returns_Pdf()
     {
         using var db = NewDb();
-        var repo = new TourPlanner.Infrastructure.Repositories.EfTourRepository(db);
-        var logRepo = new TourPlanner.Infrastructure.Repositories.EfTourLogRepository(db);
-        var svc = new ReportService(repo, logRepo);
-
-        var t = await repo.CreateAsync(TestHelper.NewTour("PdfTest", 1));
-        await logRepo.CreateAsync(TestHelper.NewLog(t.Id, "note", 4));
-
-        var bytes = await svc.BuildTourReportAsync(t.Id);
+        var tours = new EfTourRepository(db);
+        var logs  = new EfTourLogRepository(db);
+        var t = await tours.CreateAsync(TestHelper.NewTour("S1", 5));
+        await logs.CreateAsync(TestHelper.NewLog(t.Id, "ok", 4));
+        var svc = new ReportService(tours, logs);
+        var bytes = await svc.BuildSummaryReportAsync();
         Assert.True(bytes.Length > 0);
         var ascii = Encoding.ASCII.GetString(bytes);
         Assert.StartsWith("%PDF", ascii);

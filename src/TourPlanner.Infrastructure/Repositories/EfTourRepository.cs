@@ -36,7 +36,12 @@ public sealed class EfTourRepository : ITourRepository
                 (t.Description != null && t.Description.ToLower().Contains(lower)) ||
                 t.From.ToLower().Contains(lower) ||
                 t.To.ToLower().Contains(lower) ||
-                t.TransportType.ToLower().Contains(lower));
+                t.TransportType.ToLower().Contains(lower) ||
+                _db.TourLogs.Any(l => l.TourId == t.Id && (
+                    (l.Comment != null && l.Comment.ToLower().Contains(lower)) ||
+                    l.Rating.ToString().ToLower().Contains(lower) ||
+                    l.Difficulty.ToString().ToLower().Contains(lower)
+                )));
         }
 
         if (r.MinRating is int minR)
