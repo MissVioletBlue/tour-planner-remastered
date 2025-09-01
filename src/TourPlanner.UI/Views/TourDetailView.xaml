@@ -17,7 +17,7 @@
 
         <!-- Header -->
         <TextBlock Grid.Row="0"
-                   Text="{Binding SelectedTour.Name, TargetNullValue=No tour selected}"
+                   Text="{Binding Name, TargetNullValue=No tour selected}"
                    FontSize="18" FontWeight="Semibold" />
 
         <!-- Details -->
@@ -33,26 +33,19 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="8"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="8"/>
-                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="Name:"/>
                 <TextBox Grid.Row="0" Grid.Column="1"
-                         Text="{Binding SelectedTour.Name, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"
-                         ToolTip="≥ 3 characters" />
+                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
 
-                <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="From:"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="Description:"/>
                 <TextBox Grid.Row="2" Grid.Column="1"
-                         Text="{Binding SelectedTour.From, UpdateSourceTrigger=PropertyChanged}" />
+                         Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" />
 
-                <TextBlock Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Text="To:"/>
+                <TextBlock Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Text="Distance (km):"/>
                 <TextBox Grid.Row="4" Grid.Column="1"
-                         Text="{Binding SelectedTour.To, UpdateSourceTrigger=PropertyChanged}" />
-
-                <TextBlock Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Text="Distance (km):"/>
-                <TextBox Grid.Row="6" Grid.Column="1"
-                         Text="{Binding SelectedTour.DistanceKm, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}" />
+                         Text="{Binding DistanceKm, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}" />
             </Grid>
         </GroupBox>
 
@@ -63,6 +56,8 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="8"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="8"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <DataGrid Grid.Row="0"
@@ -70,7 +65,7 @@
                           SelectedItem="{Binding SelectedLog}"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
-                          IsReadOnly="False">
+                          IsReadOnly="True">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=\{0:yyyy-MM-dd\}}" Width="*" />
                         <DataGridTextColumn Header="Rating" Binding="{Binding Rating}" Width="*" />
@@ -78,7 +73,22 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,0">
+                    <StackPanel Orientation="Vertical" Margin="0,0,8,0">
+                        <TextBlock Text="Date"/>
+                        <DatePicker SelectedDate="{Binding LogDate, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Vertical" Margin="0,0,8,0">
+                        <TextBlock Text="Rating"/>
+                        <TextBox Width="40" Text="{Binding LogRating, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Vertical" Width="200">
+                        <TextBlock Text="Notes"/>
+                        <TextBox Text="{Binding LogNotes, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Content="Add Log" Command="{Binding AddLogCommand}" Margin="0,0,8,0"/>
                     <Button Content="Delete Log" Command="{Binding DeleteLogCommand}" />
                 </StackPanel>
