@@ -12,6 +12,12 @@ public sealed class AppDbContext : DbContext
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+    private static string SerializeRoute(List<(double Lat, double Lng)> route) =>
+        JsonSerializer.Serialize(route);
+
+    private static List<(double Lat, double Lng)> DeserializeRoute(string json) =>
+        JsonSerializer.Deserialize<List<(double Lat, double Lng)>>(json) ?? new();
+
     protected override void OnModelCreating(ModelBuilder b)
     {
         b.Entity<Tour>(e =>
@@ -22,8 +28,8 @@ public sealed class AppDbContext : DbContext
             e.Property(x => x.RouteImagePath).HasMaxLength(500);
             e.Property(x => x.Route)
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<List<(double Lat, double Lng)>>(v) ?? new())
+                    v => SerializeRoute(v),
+                    v => DeserializeRoute(v))
                 .HasColumnType("jsonb");
             e.HasIndex(x => x.Name);
             e.HasIndex(x => x.DistanceKm);
