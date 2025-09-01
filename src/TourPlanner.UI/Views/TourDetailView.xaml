@@ -28,14 +28,25 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
+                    <!-- Name -->
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="8"/>
+                    <!-- Description -->
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="8"/>
+                    <!-- From -->
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="8"/>
+                    <!-- To -->
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="8"/>
+                    <!-- Transport -->
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="8"/>
+                    <!-- Distance -->
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="8"/>
+                    <!-- Estimated Time -->
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
