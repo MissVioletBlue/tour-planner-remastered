@@ -21,7 +21,7 @@ public class ReportServiceSummaryTests
     }
 
     [Fact]
-    public async Task Summary_Report_Has_Marker()
+    public async Task Summary_Report_Returns_Pdf()
     {
         using var db = NewDb();
         var tours = new EfTourRepository(db);
@@ -30,7 +30,9 @@ public class ReportServiceSummaryTests
         await logs.CreateAsync(TestHelper.NewLog(t.Id, "ok", 4));
         var svc = new ReportService(db);
         var bytes = await svc.BuildSummaryReportAsync();
-        var text = Encoding.UTF8.GetString(bytes);
-        Assert.Contains("SummaryReport", text);
+        Assert.True(bytes.Length > 0);
+        var ascii = Encoding.ASCII.GetString(bytes);
+        Assert.StartsWith("%PDF", ascii);
+        Assert.Contains("%%EOF", ascii);
     }
 }

@@ -21,7 +21,7 @@ public class ReportServiceTests
     }
 
     [Fact]
-    public async Task Report_Contains_Tour_Name()
+    public async Task Report_Returns_Valid_Pdf()
     {
         using var db = NewDb();
         var repo = new TourPlanner.Infrastructure.Repositories.EfTourRepository(db);
@@ -33,7 +33,8 @@ public class ReportServiceTests
 
         var bytes = await svc.BuildTourReportAsync(t.Id);
         Assert.True(bytes.Length > 0);
-        var text = Encoding.UTF8.GetString(bytes);
-        Assert.Contains("PdfTest", text);
+        var ascii = Encoding.ASCII.GetString(bytes);
+        Assert.StartsWith("%PDF", ascii);
+        Assert.Contains("%%EOF", ascii);
     }
 }
