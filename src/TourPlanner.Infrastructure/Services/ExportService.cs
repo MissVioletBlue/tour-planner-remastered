@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +21,15 @@ public sealed class ExportService : IExportService
         var logs  = await _db.TourLogs.Where(l => ids.Contains(l.TourId)).ToListAsync(ct);
 
         var items = tours.Select(t => new TourExportDto(
-            t.Id, t.Name, t.Description, t.DistanceKm,
+            t.Id,
+            t.Name,
+            t.Description,
+            t.From,
+            t.To,
+            t.TransportType,
+            t.DistanceKm,
+            t.EstimatedTime,
+            t.Route,
             logs.Where(l => l.TourId == t.Id).ToList()
         )).ToList();
 
@@ -42,7 +51,17 @@ public sealed class ExportService : IExportService
             foreach (var dto in items)
             {
                 var exists = await _db.Tours.AnyAsync(x => x.Id == dto.Id, ct);
-                if (!exists) _db.Tours.Add(new Tour(dto.Id, dto.Name, dto.Description, dto.DistanceKm));
+                if (!exists) _db.Tours.Add(new Tour(
+                    dto.Id,
+                    dto.Name,
+                    dto.Description,
+                    dto.From,
+                    dto.To,
+                    dto.TransportType,
+                    dto.DistanceKm,
+                    dto.EstimatedTime,
+                    dto.Route ?? new List<(double,double)>()
+                ));
                 foreach (var l in dto.Logs)
                     if (!await _db.TourLogs.AnyAsync(x => x.Id == l.Id, ct))
                         _db.TourLogs.Add(l);
